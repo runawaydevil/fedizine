@@ -1,673 +1,299 @@
-# Fedizine — Como funciona este projeto
+# Fedizine — Como o sistema funciona
 
-Documento de referência completo sobre o **Fedizine**: o que é, para que serve, como está organizado, como se parece e como opera do Fediverso até a webzine publicada e o PDF imprimível.
+Referência técnica e visual: stack, arquitetura, fluxo de dados, renderização e identidade de interface.
 
-**Domínio alvo:** [https://zine.murad.social](https://zine.murad.social)  
-**Porta local (Docker):** `4927` → container na porta `8000`  
-**Versão atual do código:** `0.1.0`
-
----
-
-## 1. O que é o Fedizine
-
-O Fedizine é um **gerador de webzines pessoais e PDFs imprimíveis** a partir da atividade pública de uma pessoa no **Fediverso**.
-
-Ele não é uma rede social, um dashboard de métricas nem um agregador infinito de feeds. É uma **pequena prensa editorial** para a web pessoal: coleta fragmentos federados, cura uma seleção mensal e publica o resultado em dois formatos:
-
-1. **Webzine navegável** — HTML com URL estável, leitura confortável, arquivo histórico e feed RSS.
-2. **PDF A5 imprimível** — versão paginada, colecionável, gerada com WeasyPrint a partir de template próprio.
-
-A ideia central:
-
-> A timeline é contínua. O zine é uma edição.
-
-Posts, fotos, vídeos, leituras, comunidades e links do Fediverso viram um número mensal com começo, meio e fim — preservando memória e presença digital fora das plataformas alheias.
+**Versão do app:** `0.0.1` (Pablo Murad · pablomurad@pm.me)  
+**UI pública e desk:** inglês
 
 ---
 
-## 2. Filosofia e princípios
+## 1. O que é
 
-### 2.1. A web pessoal importa
+Fedizine é uma **pequena prensa editorial** para a web pessoal no Fediverso. Não é rede social nem agregador infinito.
 
-Cada editor pode ter:
+Entrada: posts, fotos, vídeos, leituras e links via **RSS/Atom** e **ActivityPub**.  
+Saída:
 
-- uma página inicial (`/`)
-- edições mensais (`/YYYY-MM/`)
-- slash pages IndieWeb (`/about/`, `/now/`, `/uses/`, `/links/`)
-- arquivo (`/archive/`)
-- colofão (`/colophon/`)
-- feed RSS (`/feed.xml`)
-- PDFs arquiváveis (`/YYYY-MM/zine.pdf`)
+1. **Webzine** — HTML com URL estável, arquivo, slash pages e RSS.
+2. **PDF A5** — impressão via WeasyPrint.
 
-O conteúdo não desaparece numa timeline infinita; vira publicação editorial.
-
-### 2.2. O Fediverso é fonte, não destino
-
-O sistema coleta, normaliza, pontua, reorganiza e transforma conteúdo. O resultado não é cópia da timeline — é curadoria.
-
-### 2.3. Curadoria vale mais que coleta
-
-**Prioriza:** posts autorais, mídia, threads, leituras, vídeos, fotos, links com contexto, comunidades, eventos.
-
-**Reduz:** respostas curtas, boosts sem comentário, duplicatas, ruído técnico.
-
-### 2.4. Baixa interferência humana, mas não zero
-
-Fluxo ideal:
-
-```text
-coleta automática → pontuação → seleção automática → montagem da edição → revisão leve → publicação
-```
-
-O editor revisa, aprova, rejeita ou destaca itens na **Mesa editorial** (`/mesa/`), sem montar tudo manualmente.
-
-### 2.5. Multiusuário na arquitetura, uso pessoal no MVP
-
-- Banco e modelos já têm `user_id` em fontes, itens e edições.
-- Cadastro público desativado (`ENABLE_PUBLIC_SIGNUP=false`).
-- Primeiro uso: editor padrão `pablo` em `zine.murad.social`.
+Princípio: *a timeline é contínua; o zine é uma edição.*
 
 ---
 
-## 3. Stack técnica
+## 2. Stack
 
 | Camada | Tecnologia |
 |--------|------------|
 | Linguagem | Python 3.12+ |
-| API / servidor | FastAPI + Uvicorn |
+| HTTP / API | FastAPI + Uvicorn |
+| Templates | Jinja2 (público, admin, print, RSS) |
 | ORM / migrações | SQLAlchemy 2 + Alembic |
 | Banco | PostgreSQL 16 |
-| Filas / agendamento | Celery + Redis |
-| Templates web | Jinja2 |
-| Mesa editorial (UI admin) | HTMX + Alpine.js |
+| Filas | Celery 5 + Redis 7 |
+| HTTP cliente (fediverso) | httpx |
+| Feeds | feedparser |
 | PDF | WeasyPrint |
-| HTTP cliente (coleta) | httpx, feedparser |
 | Sanitização HTML | bleach |
-| Containerização | Docker Compose |
 | CLI | Typer (`fedizine`) |
+| Deploy local | Docker Compose |
 
-**Dependências principais** estão em `pyproject.toml`. O pacote expõe o comando `fedizine` após `pip install -e .`.
+Sem frontend SPA: HTML server-rendered, HTMX e Alpine.js só no admin para interações leves.
 
 ---
 
-## 4. Arquitetura em camadas
+## 3. Serviços Docker
 
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│  Público (site v3)          Mesa editorial (/mesa)          │
-│  templates/public/          templates/admin/                 │
-│  static/css/site.css        tema-papel.css + mesa.css        │
-└──────────────┬──────────────────────────┬─────────────────────┘
-               │                          │
-               ▼                          ▼
-┌──────────────────────────────────────────────────────────────┐
-│  app/web/public.py          app/web/admin.py                 │
-│  app/renderers/web_edition  app/services/*                   │
-└──────────────┬──────────────────────────┬────────────────────┘
-               │                          │
-               ▼                          ▼
-┌──────────────────────────────────────────────────────────────┐
-│  Conectores (RSS, ActivityPub) → Normalização → Editorial    │
-│  app/connectors/            app/editorial/                   │
-└──────────────┬───────────────────────────────────────────────┘
-               │
-               ▼
-┌──────────────────────────────────────────────────────────────┐
-│  PostgreSQL (users, sources, items, editions, zines, jobs)     │
-└──────────────────────────────────────────────────────────────┘
-               │
-               ▼
-┌──────────────────────────────────────────────────────────────┐
-│  Celery worker + beat (coleta periódica, tarefas assíncronas) │
-└──────────────────────────────────────────────────────────────┘
-               │
-               ▼
-┌──────────────────────────────────────────────────────────────┐
-│  storage/public/ — snapshots HTML, feed.xml, PDFs           │
-│  storage/media/  — mídia baixada                             │
-└──────────────────────────────────────────────────────────────┘
+app        → FastAPI (porta 8000 interna, HOST_PORT no host)
+worker     → Celery worker (collect, score, build, pdf, publish)
+scheduler  → Celery beat (coleta diária 06:00)
+postgres   → dados relacionais
+redis      → broker e backend de resultados Celery
 ```
 
-### 4.1. Pontos de entrada
-
-- **`app/main.py`** — monta FastAPI, sessões, arquivos estáticos (`/static`), snapshots (`/files`), routers de health, público e admin.
-- **`scripts/entrypoint.sh`** — espera PostgreSQL, roda `alembic upgrade head`, inicia Uvicorn.
-- **`app/cli.py`** — comandos Typer para operação sem interface web.
-
-### 4.2. Serviços Docker
-
-| Serviço | Função |
-|---------|--------|
-| `app` | API + site + Mesa |
-| `worker` | Celery worker (coleta, score, build, publish) |
-| `scheduler` | Celery beat (coleta agendada) |
-| `postgres` | Banco relacional |
-| `redis` | Broker e backend Celery |
-
-Volume persistente: `./storage` montado em `/data` no container (`/data/public`, `/data/media`, etc.).
+Volume `./storage` montado em `/data` no container (`PUBLIC_PATH`, `MEDIA_PATH`, etc.).
 
 ---
 
-## 5. Modelo de dados
+## 4. Arquitetura lógica
 
-### 5.1. Entidades principais
+```mermaid
+flowchart TB
+  subgraph ingest [Ingestão]
+    Sources[Sources RSS/AP]
+    Connectors[Connectors]
+    Normalizer[Normalizer + Dedup]
+    Scorer[Scorer]
+  end
 
-**User** — editor com `email`, `password_hash`, `display_name`, `slug`, `timezone`, `locale`.
+  subgraph editorial [Editorial]
+    Items[(items)]
+    Desk[Editorial Desk /desk]
+    Edition[(editions + edition_items)]
+  end
 
-**Source** — fonte fediversal do usuário: `name`, `platform`, `source_type` (feed, perfil…), `url`, `handle`, `config` (JSON), `enabled`.
+  subgraph output [Publicação]
+    WebRenderer[web_edition]
+    PrintRenderer[print_edition]
+    FeedRenderer[feed_rss]
+    PublicFS[storage/public]
+  end
 
-**Item** — fragmento normalizado coletado:
-
-- Identidade: `external_id`, `platform`, `content_type`
-- Conteúdo: `title`, `content`, `summary`, `canonical_url`
-- Autoria: `author_name`, `author_handle`
-- Metadados: `published_at`, `media` (JSON), `tags`, `metrics`, `raw_data`
-- Editorial: `score`, `status`, `suggested_section`
-
-Status de item: `candidate` → `selected` / `featured` / `rejected` / `archived`.
-
-**Edition** — edição mensal (`period_year_month` no formato `YYYY-MM`):
-
-- `title`, `editorial_text`, `status`, `visibility`, `published_at`
-- `sections_config` (JSON com seções padrão)
-- Relação 1:N com `EditionItem`
-
-**EditionItem** — liga item à edição com `section`, `sort_order`, `is_featured`, overrides de título/resumo.
-
-**Zine** — artefato publicado: caminhos do PDF (`pdf_path`), web (`web_path`), timestamps.
-
-**Job** — registro de tarefas assíncronas (coleta, etc.).
-
-### 5.2. Seções editoriais padrão
-
-```text
-Editorial · Destaques · Fragmentos · Fotos · Leituras · Vídeos
-Comunidades · Links comentados · Agenda · Rodapé
+  Sources --> Connectors --> Normalizer --> Scorer --> Items
+  Desk --> Items
+  Desk --> Edition
+  Edition --> WebRenderer --> PublicFS
+  Edition --> PrintRenderer --> PublicFS
+  Edition --> FeedRenderer --> PublicFS
 ```
 
-O pontuador (`app/editorial/scorer.py`) mapeia `content_type` → seção sugerida (ex.: `image` → Fotos, `book` → Leituras).
+### Camadas no código
 
-### 5.3. Pontuação editorial
-
-Critérios positivos (exemplos):
-
-- +30 conteúdo próprio / `own_content`
-- +20 possui mídia
-- +20 parte de thread
-- +15 link comentado no texto
-- +15 alt text em mídia
-- +10 tags
-- +10 engajamento (limitado)
-- +5 publicado na última semana
-- +10 texto longo (>280 caracteres)
-
-Critérios negativos:
-
-- −20 texto muito curto
-- −30 repost/boost sem contexto
-
-Limite de seleção automática: `EDITORIAL_SCORE_THRESHOLD` (padrão **50**). Itens acima passam de `candidate` para `selected`.
+| Pasta | Papel |
+|-------|--------|
+| `app/web/` | Rotas FastAPI: `public.py`, `admin.py`, `health.py` |
+| `app/services/` | Regras de negócio: coleta, edição, pontuação, publicação |
+| `app/connectors/` | RSS e ActivityPub → dict bruto normalizado |
+| `app/editorial/` | Normalização, dedup, scoring, copy (meses, seções) |
+| `app/renderers/` | Jinja offline: web, PDF, RSS; `common.py` compartilhado |
+| `app/models/` | SQLAlchemy: User, Source, Item, Edition, EditionItem, Zine, Job |
+| `app/workers/` | Tasks Celery |
+| `templates/` | `public/`, `admin/`, `print/`, `feeds/`, `partials/` |
+| `static/css/` | `site.css`, `desk.css`, `paper-tokens.css`, `print-a5.css` |
 
 ---
 
-## 6. Conectores e plataformas
+## 5. Modelo de dados (resumo)
 
-Registro em `config/platform_registry.yml`:
+- **User** — editor; sessão no desk via cookie assinado.
+- **Source** — fonte federada (URL, plataforma, handle, config JSON).
+- **Item** — fragmento coletado: conteúdo, mídia, score, status (`candidate` → `selected` / `featured` / `ignored`), `suggested_section`.
+- **Edition** — issue mensal (`period_year_month` = `YYYY-MM`), status `draft` → `ready` → `published`.
+- **EditionItem** — liga Item à Edition com seção e ordem.
+- **Zine** — metadados de publicação (caminhos web/PDF, timestamps).
+- **Job** — registro de trabalhos de coleta.
 
-| Plataforma | Conector | Protocolos | Tipos de conteúdo |
-|------------|----------|------------|-------------------|
-| RSS / Atom | rss | rss, atom | article, link, status |
-| ActivityPub | activitypub | activitypub | status, article, image, video, event |
-| Mastodon | activitypub | activitypub, mastodon_api, rss | status, image, link, thread |
-| Pixelfed | activitypub | activitypub, rss | image, album |
-| Lemmy | activitypub | activitypub, rss | community_post, comment, link |
-| PeerTube | activitypub | activitypub, peertube_api, rss | video, channel |
-| BookWyrm | activitypub | activitypub, rss | book, review, quote |
-
-Implementação em `app/connectors/` (`base.py`, `rss.py`, `activitypub.py`, `registry.py`).
-
-Coleta com validação de URL (`app/utils/url_validator.py`): apenas HTTPS, bloqueio de IPs privados por padrão.
+Multi-usuário no schema; MVP assume um editor padrão (`DEFAULT_USER_SLUG` no `.env`).
 
 ---
 
-## 7. Fluxo editorial completo
+## 6. Conectores e Fediverso
 
-### 7.1. Passo a passo (Mesa ou CLI)
+Registro de plataformas: `config/platform_registry.yml`.
 
-```text
-1. Cadastrar fontes        → /mesa/fontes ou API admin
-2. Coletar fragmentos      → "Coletar agora" ou `fedizine collect`
-3. Pontuar itens           → automático na coleta ou `fedizine score --month YYYY-MM`
-4. Revisar fragmentos      → /mesa/fragmentos (aprovar, rejeitar, destacar)
-5. Montar edição           → /mesa/edicao ou `fedizine build-edition --month YYYY-MM`
-6. Gerar prova PDF         → /mesa/edicao/prova ou `fedizine build-pdf --month YYYY-MM`
-7. Publicar                → botão publicar ou `fedizine publish --month YYYY-MM`
-```
+| Connector | Protocolos típicos |
+|-----------|-------------------|
+| `rss.py` | RSS, Atom |
+| `activitypub.py` | ActivityPub (outbox, actor, webfinger) |
 
-### 7.2. O que a publicação faz
+Plataformas mapeadas (mastodon, pixelfed, lemmy, peertube, bookwyrm, …) reutilizam o connector ActivityPub ou RSS conforme o cadastro.
 
-`publish_service.publish_edition()`:
+**ActivityPub:** resolve actor → outbox → páginas com `orderedItems` ou `items`; `next` pode ser URL ou objeto com `id`. Tipos aceitos: Note, Article, Image, Video, Event, Document.
 
-1. Renderiza HTML da edição → `storage/public/YYYY-MM/index.html`
-2. Gera PDF → `storage/public/YYYY-MM/zine.pdf`
+**Segurança de URL:** `url_validator` exige esquemas permitidos e bloqueia resolução para IPs privados quando configurado.
+
+---
+
+## 7. Pontuação e seções
+
+`app/editorial/scorer.py` atribui score heurístico (conteúdo próprio, mídia, thread, links, alt text, tags, engajamento, recência, tamanho do texto).
+
+Seções padrão (inglês): Fragments, Photos, Readings, Videos, Agenda, Communities, Commented links — mapeadas por `content_type` em `SECTION_MAP`.
+
+Limiar editorial: `EDITORIAL_SCORE_THRESHOLD` (padrão 50).
+
+---
+
+## 8. Publicação
+
+`publish_service.publish_edition`:
+
+1. Renderiza HTML da edição → `storage/public/{YYYY-MM}/index.html`
+2. Gera PDF → `storage/public/{YYYY-MM}/zine.pdf`
 3. Atualiza `feed.xml` na raiz pública
-4. Regenera `index.html` da home
-5. Marca edição como `published`, `visibility=public`, grava `published_at`
+4. Re-renderiza home → `storage/public/index.html`
+5. Marca edition `published`, atualiza `Zine`
 
-O site dinâmico (FastAPI) serve as páginas em tempo real; os arquivos em `storage/public/` são **snapshots estáticos** para espelhamento ou CDN. Após mudanças de template, republicar com `fedizine publish` atualiza os snapshots.
-
-### 7.3. Coleta agendada
-
-Celery beat dispara `collect_all_users` conforme `COLLECTION_INTERVAL_HOURS` (padrão 24h). Tarefas individuais: `collect_source`, `score_items`, `build_edition_task`, `build_pdf_task`, `publish_edition_task`.
+Rotas dinâmicas em `public.py` leem do banco edições publicadas; arquivos estáticos também ficam disponíveis sob `/files/` e paths diretos do mount público.
 
 ---
 
-## 8. Rotas públicas
+## 9. Rotas HTTP
 
-Todas as slash pages são registradas **antes** da rota `/{period}/` para evitar conflito com slugs de mês.
+### Público
 
-| Rota | Descrição |
-|------|-----------|
-| `/` | Home — hero, grid 2×2, edição atual, slash pages, fediverso, prateleira |
-| `/about/` | Sobre a webzine |
-| `/now/` | Foco atual (slash page) |
-| `/uses/` | Ferramentas e bastidores |
-| `/links/` | Vizinhos e atalhos |
-| `/archive/` | Arquivo de todas as edições publicadas |
-| `/colophon/` | Como o site é feito (stack, intenção) |
-| `/feed.xml` | Feed RSS das edições |
-| `/YYYY-MM/` | Edição mensal (seções + fragmentos) |
-| `/YYYY-MM/zine.pdf` | PDF A5 da edição |
-| `/health` | Health check |
-| `/static/*` | CSS e assets |
-| `/files/*` | Arquivos publicados em `storage/public` |
+| Rota | Handler |
+|------|---------|
+| `GET /` | Home |
+| `GET /archive/` | Arquivo |
+| `GET /colophon/` | Colofão |
+| `GET /feed.xml` | RSS |
+| `GET /about/`, `/now/`, `/uses/`, `/links/` | Slash pages |
+| `GET /{YYYY-MM}/` | Edição publicada |
+| `GET /{YYYY-MM}/zine.pdf` | PDF |
 
-**Nota:** URLs com `@usuario` do documento de conceito (`Build_Docs/README.md`) ainda não estão implementadas; o MVP usa domínio único com período `YYYY-MM`.
-
----
-
-## 9. Mesa editorial (admin)
-
-Prefixo: **`/mesa`**. Autenticação por sessão (email + senha). Sem cadastro público.
+### Editorial Desk (`/desk`, autenticado)
 
 | Rota | Função |
 |------|--------|
-| `/mesa/login` | Login |
-| `/mesa/logout` | Encerrar sessão |
-| `/mesa/` | Dashboard — contadores, edição do mês |
-| `/mesa/fontes` | CRUD de fontes fediversais |
-| `/mesa/fragmentos` | Lista e triagem de itens coletados |
-| `/mesa/edicao` | Montagem da edição mensal |
-| `/mesa/edicao/prova` | Preview e geração/publicação de PDF |
+| `/desk/login` | Sessão |
+| `/desk/` | Dashboard do mês |
+| `/desk/sources` | CRUD fontes + collect |
+| `/desk/fragments` | Curadoria |
+| `/desk/issues` | Montagem |
+| `/desk/proof` | PDF + publish |
 
-### 9.1. Aparência da Mesa (separada do site público)
+### Estático
 
-A Mesa **não** usa o visual v3 colorido. Mantém estética **“papel de trabalho”**:
-
-- `static/css/tema-papel.css` — tokens bege, serifas, ambiente calmo
-- `static/css/mesa.css` — layout sidebar + área principal
-- `templates/admin/base.html` — sidebar com links, HTMX e Alpine.js
-
-Isso é intencional: o site público é cartaz IndieWeb; a Mesa é ferramenta de trabalho discreta.
+- `/static/css/*` — folhas de estilo
+- `/assets/*` — logo, favicon
+- `/favicon.ico` — atalho para favicon
 
 ---
 
-## 10. Identidade visual — site público v3
+## 10. Aparência visual
 
-O guia definitivo está em `Build_Docs/visual.md` (v3). A implementação vive em `static/css/site.css` e nos templates `templates/public/` + `templates/partials/`.
+Duas “camadas” visuais distintas.
 
-### 10.1. Frase-guia visual
+### Site público — `static/css/site.css`
 
-> Fedizine deve parecer uma webzine fediversal viva, colorida e pessoal — algo entre um cartaz IndieWeb, uma homepage de bairro digital e uma pequena prensa editorial.
+Estética **Fedizine**: webzine colorido, editorial, inspirado em prensa indie e fanzine digital.
 
-### 10.2. Referências de design
+- Fundo quente (`--bg: #fff7f0`), tinta escura (`--ink`)
+- Acentos fortes: pink, blue, yellow, green, purple (cards e botões)
+- Sombras duras (`box-shadow` offset) estilo carimbo/recorte
+- Tipografia: system UI sans; hierarquia clara na home e na edição
+- Componentes: `press-hero`, `hero-issue-mark`, `card-pink/yellow/blue`, `fragment-card`, `source-tag`, `nav-pills`, `slash-list`
+- Layout responsivo; leitura em coluna na página de edição
+- Idioma do conteúdo UI: **inglês**
 
-- **omg.lol** — cores doces, hero com personalidade, energia lúdica
-- **slashpages.net** — títulos tipo `# /ABOUT`, tipografia forte, links com caráter
-- **IndieWeb / Tildeverse** — web pessoal, URLs estáveis, slash pages visíveis
-- **Zines xerocados** — contraste, cor, sombras duras (não minimalismo corporativo)
+Templates principais: `templates/public/home.html`, `edition.html`, `archive.html`, partials `site_header`, `site_footer`, `fragment_card`, `source_tag`.
 
-A v1/v2 “cozy bege” foi abandonada como direção principal. Bege (`#fff7f0`) existe só como fundo de apoio; a interface é **colorida e gráfica**.
+### Editorial Desk — `paper-tokens.css` + `desk.css`
 
-### 10.3. Paleta de cores (tokens CSS)
+Ambiente de trabalho **calmo e legível**, papel e tinta.
 
-```css
---bg: #fff7f0          /* fundo creme suave */
---surface: #ffffff
---ink: #171321         /* texto e contornos */
+- Tokens em `paper-tokens.css`: `--paper`, `--ink`, serifas para títulos, mono para meta
+- `desk.css`: layout sidebar + main (`desk-layout`, `desk-sidebar`, `desk-main`)
+- Cartões de fragmento reutilizam `.fragment-card` e `.source-tag`
+- Botões `.btn` / `.btn-secondary` discretos; formulários em `.form-card`
+- HTMX/Alpine no `admin/base.html` para fluxo sem SPA
 
---pink: #ff4fa3
---pink-hot: #e40066    /* links */
---blue: #1677ff
---blue-sky: #b9e3ff
---cyan: #31c6d4
---purple: #8b5cf6
---violet: #6d28d9
---orange: #ff8a00
---yellow: #ffd43b
---green: #37d67a
---teal: #00a896
---red: #ff4d4d
+### PDF — `static/css/print-a5.css` + `templates/print/zine_a5.html`
 
---line: #171321
---muted: #5f5a6b
-
---shadow-hard: 8px 8px 0 #171321
---shadow-small: 4px 4px 0 #171321
-```
-
-### 10.4. Tipografia
-
-- **Corpo:** system-ui stack, 18px, line-height 1.55
-- **Títulos / marca:** Georgia (ou Arial Rounded MT Bold como fallback), peso 900, letter-spacing negativo
-- **Hero H1:** clamp(2.5rem … 5.5rem) — quase cartaz
-- **Labels / eyebrow:** uppercase, peso 900, caixa amarela com borda preta
-
-### 10.5. Links
-
-Todos os links usam:
-
-```css
-text-decoration: underline wavy currentColor;
-text-underline-offset: 4px;
-color: var(--pink-hot);
-```
-
-Hover muda para azul. Foco visível com outline azul (acessibilidade).
-
-### 10.6. Componentes visuais
-
-#### Topbar (`.topbar`)
-
-- Marca com **bolha rosa** (`♥`) em círculo com borda 3px e sombra
-- Nome **Fedizine** + domínio (`zine.murad.social`) em cinza
-- **Nav pills** — cada link é um “botão” com borda preta, sombra offset e cor de fundo diferente (amarelo, azul céu, rosa claro, verde claro, roxo claro, laranja)
-
-#### Hero (`.hero`)
-
-- Bloco grande com gradiente azul céu, borda 4px, border-radius 32px, sombra dura
-- Nuvem decorativa “**fedizine**” (`.hero-cloud`) — pill branca, texto rosa gigante
-- **Eyebrow** amarelo: “★ webzine fediversal mensal”
-- H1: “Uma pequena prensa para o Fediverso.”
-- Subtítulo explicativo
-- Botões de ação (`.btn-pink`, `.btn-blue`, `.btn-yellow`…)
-- **Stickers** fediversais na base (ActivityPub, RSS, Mastodon, Pixelfed, BookWyrm, PeerTube, Lemmy)
-- Pseudo-elemento `::after` com “colinas” verdes na parte inferior
-
-#### Botões (`.btn`)
-
-- Borda 3px preta, border-radius 14px, sombra 5px offset
-- Hover: translate(3px, 3px) + sombra reduzida (efeito “pressionar”)
-- Variantes por cor de fundo: pink, blue-sky, yellow, green, purple
-
-#### Cards (`.card`)
-
-- Borda 3px, radius 22px, sombra pequena
-- Variantes coloridas: `.card-pink`, `.card-yellow`, `.card-blue`, `.card-green`, `.card-purple`, `.card-orange`
-- `.label` — rótulo editorial pequeno acima dos títulos
-- `.meta` — texto secundário em `--muted`
-
-#### Home grid (`.home-grid`)
-
-Grid 2×2 na home com quatro cartões:
-
-1. **Rosa** — edição atual (mês, título, contagem de fragmentos/fontes, PDF pronto)
-2. **Amarelo** — slash pages com links `#/about`, `#/now`, etc.
-3. **Azul** — tag cloud do Fediverso
-4. **Verde** — prateleira (edições por ano + link para arquivo)
-
-#### Slash pages
-
-- Título visual: `# /ABOUT`, `# /NOW`, etc. (`.slash-title`)
-- Card amarelo ou roxo com lede e corpo
-- Links `.slash` com estilo de slug
-
-#### Página de edição
-
-- **Capa** (`.edition-cover.card-pink`) — título, mês, texto editorial opcional, botões PDF/arquivo/início
-- **Sumário** (`.toc.card-yellow`) — índice por seção com contagem
-- **Coluna de leitura** — seções com `.card-editorial` por fragmento
-- Partial `selo_origem.html` — indica plataforma/origem do item
-
-#### Footer (`.footer`)
-
-Colofão curto, links para arquivo, RSS, colophon, crédito Fedizine.
-
-### 10.7. Responsividade
-
-`@media (max-width: 760px)`:
-
-- Topbar empilha
-- Hero reduz padding e tamanhos
-- Home grid vira coluna única
-- Nav pills e botões ajustam espaçamento
-
-### 10.8. Aliases de compatibilidade
-
-Classes antigas ainda funcionam: `.button-primary` → `.btn-pink`, `.button-secondary` → `.btn-yellow`, `.site-shell`, `.selo`.
+Paginação A5, tipografia de impressão, seções e fragmentos em ordem editorial.
 
 ---
 
-## 11. Templates — mapa de arquivos
+## 11. Renderização Jinja
+
+Três ambientes offline em `app/renderers/`:
+
+- `web_edition.py` — home, arquivo, edição, slash pages; escreve snapshots
+- `print_edition.py` — HTML → PDF via WeasyPrint
+- `feed_rss.py` — `templates/feeds/rss.xml`
+
+`common.py` centraliza `make_jinja_env`, filtro `month_name` e `group_edition_by_section`.
+
+O desk usa `Jinja2Templates` do FastAPI em `app/web/templates.py` (rotas ao vivo, não snapshot).
+
+---
+
+## 12. Configuração
+
+Variáveis em `.env` (modelo em `.env.example`):
+
+- `APP_PUBLIC_URL` — base para links no RSS e redirects
+- `APP_SECRET_KEY` — sessão do desk
+- `DATABASE_URL`, `REDIS_URL`, paths de storage
+- `DEFAULT_USER_*` — seed do primeiro editor via CLI
+- `EDITORIAL_SCORE_THRESHOLD`, `COLLECTION_INTERVAL_HOURS`, `COLLECT_TIMEOUT_SECONDS`
+- `ALLOWED_URL_SCHEMES`, `BLOCK_PRIVATE_IPS`
+
+---
+
+## 13. Estrutura de diretórios (raiz)
 
 ```text
-templates/
-├── base.html                 # Layout público (site.css)
-├── partials/
-│   ├── site_header.html      # topbar + nav-pills
-│   ├── site_footer.html      # footer colophon
-│   ├── card_editorial.html   # card de fragmento (reuso)
-│   └── selo_origem.html      # selo da plataforma de origem
-├── public/
-│   ├── home.html             # página inicial v3
-│   ├── edition.html          # edição mensal
-│   ├── archive.html          # arquivo
-│   ├── colophon.html         # colofão
-│   └── slash.html            # about, now, uses, links
-├── admin/
-│   ├── base.html             # layout Mesa
-│   ├── login.html
-│   ├── mesa.html             # dashboard
-│   ├── fontes.html
-│   ├── fragmentos.html
-│   ├── edicao.html
-│   └── prova.html
-├── print/
-│   └── zine_a5.html          # template PDF A5
-└── feeds/
-    └── rss.xml               # template RSS
-```
-
-Contexto Jinja da home é montado em `build_home_context()`:
-
-- `latest`, `fragment_count`, `source_count`, `pdf_ready`, `month_label`
-- `editions`, `editions_by_year`, `site_host`, `public_url`
-
-Filtro customizado: `month_name` (ex.: `2026-06` → “Junho”).
-
----
-
-## 12. PDF imprimível
-
-- Template: `templates/print/zine_a5.html`
-- CSS: `static/css/print-a5.css`
-- Renderização: `app/renderers/print_edition.py` (WeasyPrint)
-- Formato padrão: **A5**
-- Saída: `storage/public/YYYY-MM/zine.pdf`
-
-O PDF tem diagramação própria — não é “print da página web”. Margens, capa, sumário e colofão são pensados para impressão.
-
----
-
-## 13. Feed RSS
-
-- Template: `templates/feeds/rss.xml`
-- Renderer: `app/renderers/feed_rss.py`
-- Rota dinâmica: `/feed.xml`
-- Snapshot estático: `storage/public/feed.xml` (atualizado na publicação)
-
----
-
-## 14. Configuração e variáveis de ambiente
-
-Arquivo modelo: `.env.example`. Principais variáveis:
-
-| Variável | Significado |
-|----------|-------------|
-| `APP_PUBLIC_URL` | URL canônica do zine |
-| `HOST_PORT` | Porta no host Docker (4927) |
-| `DATABASE_URL` | PostgreSQL |
-| `REDIS_URL` / `CELERY_*` | Filas Celery |
-| `STORAGE_PATH`, `PUBLIC_PATH`, `MEDIA_PATH` | Caminhos de armazenamento |
-| `DEFAULT_USER_*` | Seed do editor padrão |
-| `EDITORIAL_SCORE_THRESHOLD` | Limiar de seleção automática |
-| `COLLECTION_INTERVAL_HOURS` | Intervalo de coleta |
-| `ENABLE_AI_ASSISTANT` | IA desligada no MVP |
-
-Segurança: `ALLOWED_URL_SCHEMES=https`, `BLOCK_PRIVATE_IPS=true`, sessões com `APP_SECRET_KEY`.
-
----
-
-## 15. Como subir e operar
-
-### 15.1. Docker (recomendado)
-
-```bash
-cp .env.example .env
-docker compose up --build -d
-```
-
-Site: **http://localhost:4927**
-
-### 15.2. Primeiro usuário
-
-```bash
-docker compose exec app fedizine create-user --password "sua-senha-segura"
-```
-
-Login Mesa: **http://localhost:4927/mesa/login**
-
-### 15.3. CLI editorial
-
-```bash
-docker compose exec app fedizine collect
-docker compose exec app fedizine score --month 2026-06
-docker compose exec app fedizine build-edition --month 2026-06
-docker compose exec app fedizine build-pdf --month 2026-06
-docker compose exec app fedizine publish --month 2026-06
-```
-
-### 15.4. Desenvolvimento local
-
-```bash
-python -m venv .venv
-.venv\Scripts\activate          # Windows
-pip install -e .
-alembic upgrade head
-uvicorn app.main:app --reload --port 8000
+app/                 código Python
+templates/           Jinja (public, admin, print, feeds, partials)
+static/css/          estilos
+assets/              logo, favicon
+config/              platform_registry.yml
+migrations/          Alembic
+storage/public/      HTML/PDF publicados (gitignored exceto .gitkeep)
+storage/media/       mídia local (futuro)
+scripts/             entrypoint Docker
+docker-compose.yml
+pyproject.toml
 ```
 
 ---
 
-## 16. Estrutura de diretórios do repositório
+## 14. CLI `fedizine`
 
-```text
-zine-murad/
-├── app/
-│   ├── connectors/       # RSS, ActivityPub
-│   ├── core/             # config, database, security, deps
-│   ├── editorial/        # scorer, normalizer, dedup
-│   ├── models/           # SQLAlchemy
-│   ├── renderers/        # web, PDF, RSS
-│   ├── schemas/          # Pydantic
-│   ├── services/         # coleta, edição, publicação, score
-│   ├── utils/
-│   ├── web/              # routers público + admin
-│   ├── workers/          # Celery
-│   ├── cli.py
-│   └── main.py
-├── templates/            # Jinja2
-├── static/css/           # site.css, tema-papel, mesa, print-a5
-├── migrations/           # Alembic
-├── config/               # platform_registry.yml
-├── storage/              # volume Docker (public, media)
-├── scripts/              # entrypoint.sh
-├── Build_Docs/           # documentação de conceito (README, visual, stack)
-├── docker-compose.yml
-├── Dockerfile
-├── pyproject.toml
-├── README.md             # início rápido
-└── how.md                # este documento
-```
+| Comando | Efeito |
+|---------|--------|
+| `create-user` | Primeiro editor |
+| `collect` | Coleta fontes |
+| `score` | Pontua fragmentos |
+| `build-edition` | Monta issue |
+| `build-pdf` | Só PDF |
+| `publish` | Web + PDF + RSS + home |
+
+Equivalente às ações do desk, útil para automação.
 
 ---
 
-## 17. Privacidade e limites
+## 15. O que ficou de fora do MVP
 
-- Coleta apenas conteúdo **público** autorizado pelas fontes configuradas.
-- Itens rejeitados não entram na edição publicada.
-- Sem coleta de DMs ou mídia privada.
-- Tokens e segredos ficam em variáveis de ambiente, nunca no repositório.
-
----
-
-## 18. Inteligência artificial
-
-Desligada por padrão (`ENABLE_AI_ASSISTANT=false`). Usos futuros possíveis: resumos, títulos sugeridos, agrupamento temático. O MVP funciona **sem IA**.
+- Cadastro público (`ENABLE_PUBLIC_SIGNUP=false`)
+- Assistente de IA (`ENABLE_AI_ASSISTANT=false`)
+- Edição visual WYSIWYG de slash pages (texto hoje em `SLASH_PAGES` no código)
+- API JSON pública além do RSS
 
 ---
 
-## 19. Estado atual e próximos passos
-
-### Implementado (v0.1)
-
-- Docker Compose completo (app, worker, scheduler, postgres, redis)
-- Conectores RSS e ActivityPub básico
-- Normalização, pontuação, deduplicação
-- Mesa editorial com login
-- Site público **visual v3** (colorido, slash pages, hero, grid)
-- Edições web + PDF A5 + RSS
-- CLI `fedizine`
-- Publicação com snapshots em `storage/public/`
-
-### Pendente / melhorias naturais
-
-- Conteúdo real nas slash pages (hoje só lede placeholder)
-- Redesign visual da Mesa para alinhar ou contrastar melhor com v3
-- URLs multiusuário (`/@slug/YYYY-MM/`)
-- Mais conectores especializados (PeerTube API, etc.)
-- Republicar snapshots após mudanças de template
-- Webfonts display, ilustrações SVG no hero
-- IA editorial opcional
-- Cadastro público / convites (v0.4+)
-
----
-
-## 20. O que este projeto não deve virar
-
-```text
-clone de rede social
-feed infinito
-painel de analytics
-ferramenta de marketing
-CMS empresarial sem alma
-agregador de vaidade
-```
-
-Se perder a sensação de **casa digital**, **arquivo afetivo** e **publicação com voz própria**, falhou — mesmo que tecnicamente funcione.
-
----
-
-## 21. Documentos relacionados
-
-| Arquivo | Conteúdo |
-|---------|----------|
-| `README.md` | Início rápido, comandos essenciais |
-| `Build_Docs/README.md` | Visão de produto, filosofia, roadmap conceitual |
-| `Build_Docs/visual.md` | Guia visual v3 completo (paleta, componentes, checklist) |
-| `Build_Docs/stack(1).md` | Stack e deploy em detalhe |
-| `how.md` | Este documento — referência integral do projeto |
-
----
-
-*Fedizine — uma pequena prensa para o Fediverso.*
+Para o passo a passo de uso diário, veja [uso.md](uso.md).  
+Para instalação mínima, veja [README.md](README.md).

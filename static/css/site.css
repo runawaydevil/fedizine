@@ -1,29 +1,4 @@
-:root {
-  --bg: #fff7f0;
-  --surface: #ffffff;
-  --ink: #171321;
-
-  --pink: #ff4fa3;
-  --pink-hot: #e40066;
-  --blue: #1677ff;
-  --blue-sky: #b9e3ff;
-  --cyan: #31c6d4;
-  --purple: #8b5cf6;
-  --violet: #6d28d9;
-  --orange: #ff8a00;
-  --yellow: #ffd43b;
-  --green: #37d67a;
-  --teal: #00a896;
-  --red: #ff4d4d;
-
-  --line: #171321;
-  --muted: #5f5a6b;
-
-  --shadow-hard: 8px 8px 0 #171321;
-  --shadow-small: 4px 4px 0 #171321;
-
-  --measure: 68ch;
-}
+@import url("fedizine-tokens.css");
 
 * {
   box-sizing: border-box;
@@ -611,6 +586,14 @@ main.site-shell {
 .footer a,
 .site-footer a {
   font-weight: 800;
+}
+
+.footer-meta {
+  display: block;
+  margin-top: 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
 }
 
 .back-link {

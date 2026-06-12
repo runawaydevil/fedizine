@@ -1,0 +1,49 @@
+{% set item = ei.item %}
+{% set title = ei.override_title or item.title %}
+{% set summary = ei.override_summary or item.summary %}
+{% set layout = item.content_type|issue_layout %}
+<article class="print-fragment fragment-{{ layout }}">
+  <p class="print-meta">
+    {{ item.platform }}
+    {%- if item.source and item.source.name %} · {{ item.source.name }}{% endif -%}
+    {%- if item.author_handle %} · @{{ item.author_handle.lstrip('@') }}{% endif -%}
+    {%- if item.published_at %} · {{ item.published_at.strftime('%d %b %Y') }}{% endif -%}
+  </p>
+
+  {% if layout == 'photo' %}
+  {% if item.media %}
+    {% for m in item.media %}
+    {% if m.url %}
+    <figure class="print-figure">
+      <img src="{{ m.url }}" alt="{{ m.alt or '' }}">
+      {% if m.alt or title %}<figcaption>{{ m.alt or title }}</figcaption>{% endif %}
+    </figure>
+    {% endif %}
+    {% endfor %}
+  {% endif %}
+
+  {% elif layout == 'video' %}
+  <h3>{{ title or 'Video fragment' }}</h3>
+  {% if summary %}<p>{{ summary }}</p>{% elif item.content %}<p>{{ item.content }}</p>{% endif %}
+
+  {% elif layout == 'link' %}
+  <h3>{{ title or 'Shared link' }}</h3>
+  {% if summary %}<p class="print-summary">{{ summary }}</p>{% endif %}
+  {% if item.content %}<p class="print-comment">{{ item.content }}</p>{% endif %}
+
+  {% elif layout == 'reading' %}
+  <h3>{{ title or 'Reading note' }}</h3>
+  {% if item.author_name %}<p class="print-byline">by {{ item.author_name }}</p>{% endif %}
+  {% if summary %}<p>{{ summary }}</p>{% endif %}
+  {% if item.content %}<blockquote>{{ item.content }}</blockquote>{% endif %}
+
+  {% else %}
+  <h3>{{ title or 'Fragment' }}</h3>
+  {% if summary %}<p class="print-summary">{{ summary }}</p>{% endif %}
+  {% if item.content %}<p>{{ item.content }}</p>{% endif %}
+  {% endif %}
+
+  {% if item.canonical_url %}
+  <p class="print-url"><strong>Original:</strong> {{ item.canonical_url }}</p>
+  {% endif %}
+</article>

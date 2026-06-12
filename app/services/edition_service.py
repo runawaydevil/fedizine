@@ -80,7 +80,11 @@ def build_edition(db: Session, edition: Edition) -> int:
 def get_edition_with_items(db: Session, edition_id: uuid.UUID) -> Edition | None:
     return db.scalar(
         select(Edition)
-        .options(joinedload(Edition.edition_items).joinedload(EditionItem.item))
+        .options(
+            joinedload(Edition.edition_items)
+            .joinedload(EditionItem.item)
+            .joinedload(Item.source)
+        )
         .where(Edition.id == edition_id)
     )
 
@@ -98,7 +102,9 @@ def get_published_edition(db: Session, period: str) -> Edition | None:
     return db.scalar(
         select(Edition)
         .options(
-            joinedload(Edition.edition_items).joinedload(EditionItem.item),
+            joinedload(Edition.edition_items)
+            .joinedload(EditionItem.item)
+            .joinedload(Item.source),
             joinedload(Edition.zine),
         )
         .where(Edition.period_year_month == period, Edition.status == "published")

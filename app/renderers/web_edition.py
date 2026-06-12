@@ -9,13 +9,23 @@ from app.editorial.copy import month_label
 from app.models.edition import Edition
 from app.models.source import Source
 from app.models.user import User
-from app.renderers.common import attach_month_filter, group_edition_by_section, make_jinja_env
+from app.renderers.common import (
+    attach_issue_filters,
+    attach_month_filter,
+    edition_stats,
+    editorial_note,
+    issue_sources,
+    issue_toc_entries,
+    make_jinja_env,
+    public_issue_sections,
+)
 from app.services.edition_service import list_published_editions
 
 settings = get_settings()
 
 _env = make_jinja_env(autoescape=["html", "xml"])
 attach_month_filter(_env)
+attach_issue_filters(_env)
 
 
 def site_host_from_url(url: str) -> str:
@@ -85,13 +95,21 @@ def build_home_context(db: Session, user_id) -> dict:
 
 def render_edition_html(edition: Edition) -> str:
     template = _env.get_template("public/edition.html")
+    month = _month_label(edition.period_year_month)
+    sections = public_issue_sections(edition)
+    fragment_count, source_count = edition_stats(edition)
     return template.render(
         edition=edition,
-        sections=group_edition_by_section(edition),
+        sections=sections,
+        toc_entries=issue_toc_entries(sections),
+        issue_sources=issue_sources(edition),
+        editorial_note=editorial_note(edition, month),
+        fragment_count=fragment_count,
+        source_count=source_count,
         app_name=settings.app_name,
         public_url=settings.app_public_url,
         site_host=site_host_from_url(settings.app_public_url),
-        month_label=_month_label(edition.period_year_month),
+        month_label=month,
         pdf_ready=_pdf_ready(edition),
     )
 

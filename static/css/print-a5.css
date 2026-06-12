@@ -1,47 +1,312 @@
+/* Fedizine — A5 printable zine (WeasyPrint) */
+
 @page {
-  size: A5 portrait;
-  margin: 15mm;
+  size: A5;
+  margin: 14mm 12mm 16mm;
+
   @bottom-center {
     content: counter(page);
-    font-size: 9pt;
-    color: #666;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 8pt;
+    color: #444;
   }
 }
 
-body {
-  font-family: Georgia, serif;
+@page :left {
+  margin-left: 16mm;
+  margin-right: 12mm;
+}
+
+@page :right {
+  margin-left: 12mm;
+  margin-right: 16mm;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body.zine-print {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 10.5pt;
+  line-height: 1.45;
+  color: #171321;
+  margin: 0;
+  padding: 0;
+}
+
+h1 {
+  font-size: 34pt;
+  line-height: 0.95;
+  font-weight: 900;
+  margin: 0 0 12pt;
+  letter-spacing: -0.03em;
+}
+
+h2 {
+  font-size: 20pt;
+  font-weight: 900;
+  margin: 0 0 10pt;
+  line-height: 1.1;
+  page-break-after: avoid;
+  break-after: avoid;
+}
+
+h3 {
+  font-size: 13pt;
+  font-weight: 800;
+  margin: 0 0 6pt;
+  page-break-after: avoid;
+  break-after: avoid;
+}
+
+p {
+  margin: 0 0 8pt;
+}
+
+blockquote {
+  margin: 8pt 0;
+  padding: 8pt 12pt;
+  border-left: 3pt solid #e40066;
+  background: #faf8f5;
+  font-style: italic;
+}
+
+/* Cover */
+.issue-print-cover {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 240mm;
+  text-align: center;
+  padding: 20mm 8mm;
+  border: 4pt solid #171321;
+  background: linear-gradient(165deg, #b9e3ff 0%, #fff 45%, #ffd1e8 100%);
+  page-break-after: always;
+  break-after: page;
+}
+
+.print-kicker {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 11pt;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  margin: 0 0 16pt;
+  color: #e40066;
+}
+
+.print-tagline {
+  font-size: 12pt;
+  font-weight: 600;
+  color: #5f5a6b;
+  margin: 0 0 20pt;
+}
+
+.print-stats {
+  font-family: "Courier New", Courier, monospace;
   font-size: 10pt;
+  font-weight: 700;
+  margin: 0 0 16pt;
   line-height: 1.5;
+}
+
+.print-site {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 9pt;
+  font-weight: 700;
+  margin: 0 0 20pt;
+}
+
+.print-cover-stamps {
+  display: flex;
+  justify-content: center;
+  gap: 8pt;
+}
+
+.print-stamp {
+  display: inline-block;
+  padding: 4pt 10pt;
+  border: 2pt solid #171321;
+  border-radius: 999pt;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 7pt;
+  font-weight: 800;
+  text-transform: uppercase;
+  background: #fff0ad;
+}
+
+/* Table of contents */
+.print-toc {
+  page-break-after: always;
+  break-after: page;
+  padding-top: 12mm;
+}
+
+.print-toc h2 {
+  border-bottom: 3pt solid #171321;
+  padding-bottom: 6pt;
+  margin-bottom: 14pt;
+}
+
+.print-toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.print-toc-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 10pt;
+  padding: 7pt 0;
+  border-bottom: 1pt dashed #ccc;
+  font-weight: 700;
+}
+
+.toc-num {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 9pt;
+  color: #1677ff;
+  min-width: 22pt;
+}
+
+.toc-name {
+  flex: 1;
+}
+
+.toc-count {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 8pt;
+  color: #5f5a6b;
+}
+
+/* Sections */
+.print-section {
+  page-break-before: always;
+  break-before: page;
+}
+
+.print-section-header {
+  border-bottom: 3pt solid #171321;
+  padding-bottom: 8pt;
+  margin-bottom: 14pt;
+  page-break-after: avoid;
+  break-after: avoid;
+}
+
+.print-section-num {
+  display: block;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 8pt;
+  font-weight: 800;
+  color: #e40066;
+  letter-spacing: 0.08em;
+  margin-bottom: 4pt;
+}
+
+.print-section-intro {
+  font-size: 9.5pt;
+  color: #5f5a6b;
+  font-weight: 600;
+  margin: 6pt 0 0;
+}
+
+.print-editorial {
+  page-break-before: auto;
+  break-before: auto;
+}
+
+.print-editorial p {
+  font-size: 11pt;
+  line-height: 1.55;
+  max-width: 42em;
+}
+
+/* Fragments */
+.print-fragment {
+  margin: 0 0 14pt;
+  padding: 12pt;
+  border: 2pt solid #171321;
+  border-radius: 10pt;
+  background: #fff;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.print-meta {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 8pt;
+  color: #5f5a6b;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin: 0 0 8pt;
+  font-weight: 700;
+}
+
+.print-summary {
+  font-weight: 650;
+  color: #5f5a6b;
+}
+
+.print-byline {
+  font-style: italic;
+  color: #5f5a6b;
+  font-size: 9.5pt;
+}
+
+.print-comment {
+  font-size: 9.5pt;
+}
+
+.print-url {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 7.5pt;
+  word-break: break-all;
+  margin: 8pt 0 0;
+  padding-top: 6pt;
+  border-top: 1pt dashed #ccc;
   color: #333;
 }
 
-h1 { font-size: 18pt; page-break-after: avoid; }
-h2 { font-size: 13pt; margin-top: 1.5em; page-break-after: avoid; }
-h3 { font-size: 11pt; page-break-after: avoid; }
-
-.cover {
-  page-break-after: always;
-  text-align: center;
-  padding-top: 30%;
-}
-
-.toc { page-break-after: always; }
-
-.section { page-break-before: auto; }
-
-.fragment {
-  margin-bottom: 1em;
+.print-figure {
+  margin: 0 0 8pt;
   page-break-inside: avoid;
+  break-inside: avoid;
 }
 
-.meta, .url {
-  font-size: 8pt;
-  color: #666;
+.print-figure img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border: 2pt solid #171321;
 }
 
-.colophon {
-  page-break-before: always;
-  font-size: 8pt;
+.print-figure figcaption {
+  font-size: 8.5pt;
+  font-style: italic;
+  color: #5f5a6b;
+  margin-top: 4pt;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Colophon */
+.print-colophon {
   text-align: center;
-  margin-top: 2em;
+  padding-top: 20mm;
+}
+
+.print-colophon p {
+  font-size: 9pt;
+  line-height: 1.5;
+}
+
+.print-colophon-url {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 8pt;
+  margin-top: 12pt;
+  font-weight: 700;
 }

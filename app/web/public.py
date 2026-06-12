@@ -1,6 +1,7 @@
 from pathlib import Path
+from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Path, Request
 from fastapi.responses import FileResponse, HTMLResponse
 from sqlalchemy import select
 
@@ -21,6 +22,9 @@ from app.web.templates import templates
 
 router = APIRouter(tags=["public"])
 settings = get_settings()
+
+# YYYY-MM only — avoids catching /desk/, /about/, etc. before more specific routers.
+PeriodPath = Annotated[str, Path(pattern=r"^\d{4}-\d{2}$")]
 
 SLASH_PAGES = {
     "about": (
@@ -120,7 +124,7 @@ def links_page():
 
 
 @router.get("/{period}/", response_class=HTMLResponse)
-def edition_page(request: Request, db: DbSession, period: str):
+def edition_page(request: Request, db: DbSession, period: PeriodPath):
     if not _is_period(period):
         raise HTTPException(404)
     edition = get_published_edition(db, period)
@@ -130,7 +134,7 @@ def edition_page(request: Request, db: DbSession, period: str):
 
 
 @router.get("/{period}/zine.pdf")
-def edition_pdf(period: str, db: DbSession):
+def edition_pdf(period: PeriodPath, db: DbSession):
     if not _is_period(period):
         raise HTTPException(404)
     edition = get_published_edition(db, period)

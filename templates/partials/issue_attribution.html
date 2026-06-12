@@ -1,0 +1,14 @@
+<p class="fragment-attribution">
+  <span class="source-stamp">{{ item.platform }}</span>
+  {% if item.source and item.source.name %}
+  <span class="source-name">{{ item.source.name }}</span>
+  {% endif %}
+  {% if item.author_handle %}
+  <span class="source-author">@{{ item.author_handle.lstrip('@') }}</span>
+  {% elif item.author_name %}
+  <span class="source-author">{{ item.author_name }}</span>
+  {% endif %}
+  {% if item.published_at %}
+  <time class="source-date" datetime="{{ item.published_at.isoformat() }}">{{ item.published_at.strftime('%d %b %Y') }}</time>
+  {% endif %}
+</p>

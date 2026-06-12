@@ -1,65 +1,127 @@
 {% extends "base.html" %}
-{% block title %}{{ edition.title }} — {{ app_name }}{% endblock %}
-{% block body_class %}public-edition{% endblock %}
+{% block title %}{{ month_label }} Issue — {{ app_name }}{% endblock %}
+{% block body_class %}public-issue{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="/static/css/issue.css">
+{% endblock %}
 {% block content %}
-<main class="site-shell">
+<main class="issue-shell">
   {% include "partials/site_header.html" %}
 
-  <header class="edition-cover card card-pink">
-    <p class="label">{% if pdf_ready %}pdf ready{% else %}issue{% endif %}</p>
-    <h1 class="edition-title">{{ edition.title }}</h1>
-    <p class="meta">{{ month_label }} · {{ edition.period_year_month }}</p>
-    {% if edition.editorial_text %}
-    <div class="editorial-intro lede">{{ edition.editorial_text }}</div>
-    {% endif %}
-    <div class="actions">
+  <nav class="issue-nav" aria-label="Issue navigation">
+    <span class="issue-nav-label">Current issue</span>
+    <a href="/{{ edition.period_year_month }}/">{{ month_label }}</a>
+    <span class="issue-nav-sep" aria-hidden="true">·</span>
+    <a href="/{{ edition.period_year_month }}/zine.pdf">Download PDF</a>
+    <span class="issue-nav-sep" aria-hidden="true">·</span>
+    <a href="/archive/">Back to archive</a>
+  </nav>
+
+  <header class="issue-cover" id="cover">
+    <p class="issue-kicker">{{ app_name }}</p>
+    <h1 class="issue-title">{{ month_label }}</h1>
+    <p class="issue-subtitle">Monthly federated fragments stitched into a webzine.</p>
+    <p class="issue-meta">
+      {{ fragment_count }} fragment{% if fragment_count != 1 %}s{% endif %}
+      · {{ source_count }} source{% if source_count != 1 %}s{% endif %}
+      · generated from ActivityPub + RSS
+    </p>
+    <div class="issue-stamps" aria-hidden="true">
+      <span class="issue-stamp issue-stamp-pink">#fediverse</span>
+      <span class="issue-stamp issue-stamp-blue">Issue</span>
+      {% if pdf_ready %}<span class="issue-stamp issue-stamp-green">PDF ready</span>{% endif %}
+    </div>
+    <div class="issue-actions">
       <a class="btn btn-blue" href="/{{ edition.period_year_month }}/zine.pdf">Download PDF</a>
-      <a class="btn btn-yellow" href="/archive/">Archive</a>
+      <a class="btn btn-yellow" href="/archive/">Back to archive</a>
       <a class="btn btn-green" href="/">Home</a>
     </div>
   </header>
 
-  <nav class="toc card card-yellow">
-    <p class="label">contents</p>
-    <h2>Table of contents</h2>
-    <ul class="slash-list">
-      {% for section_name, items in sections.items() %}
-      <li><a href="#section-{{ loop.index }}">{{ section_name }}</a> <span class="meta">({{ items|length }})</span></li>
-      {% endfor %}
-    </ul>
-  </nav>
-
-  <div class="reading-column">
-    {% for section_name, items in sections.items() %}
-    <section id="section-{{ loop.index }}" class="edition-section">
-      <h2>{{ section_name }}</h2>
-      {% for ei in items %}
-      {% set item = ei.item %}
-      <article class="card fragment-card">
-        {% include "partials/source_tag.html" %}
-        <h3>{{ ei.override_title or item.title or "Fragment" }}</h3>
-        {% if ei.override_summary or item.summary %}
-        <p class="summary">{{ ei.override_summary or item.summary }}</p>
-        {% endif %}
-        <div class="content">{{ item.content }}</div>
-        {% if item.media %}
-        <div class="media-block">
-          {% for m in item.media %}
-          {% if m.url %}
-          <img src="{{ m.url }}" alt="{{ m.alt or '' }}" loading="lazy">
+  <aside class="issue-toc card-editorial" aria-labelledby="toc-heading">
+    <p class="issue-toc-label">Table of contents</p>
+    <h2 id="toc-heading" class="issue-toc-title">In this issue</h2>
+    <ol class="issue-toc-list">
+      {% for entry in toc_entries %}
+      <li class="toc-row">
+        <a href="#{{ entry.anchor }}" class="toc-link">
+          <span class="toc-number">{{ entry.num }}</span>
+          <span class="toc-title">{{ entry.title }}</span>
+          {% if entry.count is not none %}
+          <span class="toc-count">{{ entry.count }}</span>
           {% endif %}
-          {% endfor %}
-        </div>
-        {% endif %}
-        {% if item.canonical_url %}
-        <p class="meta"><a href="{{ item.canonical_url }}" rel="noopener">See original ↗</a></p>
-        {% endif %}
-      </article>
+        </a>
+      </li>
       {% endfor %}
+    </ol>
+  </aside>
+
+  <div class="issue-body">
+    <section class="issue-editorial" id="editorial" aria-labelledby="editorial-heading">
+      <header class="section-header section-header-editorial">
+        <span class="section-number">01</span>
+        <h2 id="editorial-heading">Editorial note</h2>
+      </header>
+      <div class="editorial-block">
+        <p class="editorial-text">{{ editorial_note }}</p>
+      </div>
+    </section>
+
+    {% for section_name, items in sections.items() %}
+    <section class="issue-section" id="section-{{ loop.index0 + 2 }}" aria-labelledby="section-heading-{{ loop.index }}">
+      <header class="section-header">
+        <span class="section-number">{{ '%02d'|format(loop.index0 + 2) }}</span>
+        <h2 id="section-heading-{{ loop.index }}">{{ section_name|section_label }}</h2>
+        <p class="section-intro">{{ section_name|section_intro }}</p>
+      </header>
+      <div class="issue-fragments">
+        {% for ei in items %}
+        {% include "partials/issue_fragment.html" %}
+        {% endfor %}
+      </div>
     </section>
     {% endfor %}
+
+    <section class="issue-sources" id="sources" aria-labelledby="sources-heading">
+      <header class="section-header">
+        <h2 id="sources-heading">Sources</h2>
+        <p class="section-intro">Public Fediverse and RSS sources that fed this issue.</p>
+      </header>
+      {% if issue_sources %}
+      <ul class="sources-list">
+        {% for source in issue_sources %}
+        <li>
+          <span class="source-stamp">{{ source.platform }}</span>
+          <strong>{{ source.name }}</strong>
+          {% if source.handle %}<span class="meta">@{{ source.handle.lstrip('@') }}</span>{% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </section>
+
+    <section class="issue-colophon" id="colophon" aria-labelledby="colophon-heading">
+      <header class="section-header">
+        <h2 id="colophon-heading">Colophon</h2>
+      </header>
+      <div class="colophon-block">
+        <p>This issue was generated by <strong>{{ app_name }}</strong>, a tiny press for the Fediverse.</p>
+        <p>Source material came from public Fediverse/RSS sources configured by the editor.</p>
+        <p>Published at <a href="{{ public_url }}">{{ site_host }}</a>.</p>
+        {% if edition.published_at %}
+        <p class="meta">Published at {{ edition.published_at.strftime('%d %b %Y') }}.</p>
+        {% endif %}
+      </div>
+    </section>
   </div>
 
-  {% include "partials/site_footer.html" %}
+  <footer class="issue-footer">
+    <p>
+      <a href="/archive/">Back to archive</a>
+      · <a href="/{{ edition.period_year_month }}/zine.pdf">Download PDF</a>
+      · <a href="/feed.xml">RSS</a>
+    </p>
+    <p class="issue-footer-credit">Generated by {{ app_name }}</p>
+  </footer>
 </main>
 {% endblock %}

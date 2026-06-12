@@ -1,27 +1,56 @@
 {% extends "admin/base.html" %}
 {% block title %}Proof{% endblock %}
+
+{% block page_header %}
+{% with kicker="Editorial Desk", title="Proof", lede="Check the issue before publishing. Generate the PDF, preview the web issue, and publish when everything looks right." %}
+{% include "partials/desk_page_header.html" %}
+{% endwith %}
+{% endblock %}
+
 {% block content %}
-<h1>Issue proof</h1>
-<p class="lede">Review before publishing.</p>
+{% set period = edition.period_year_month %}
+{% set month = period|month_name %}
+{% set year = period.split('-')[0] %}
 
-<ul class="checklist">
-  <li>[ ] Issue title reviewed</li>
-  <li>[ ] Fragments have enough context</li>
-  <li>[ ] Links working</li>
-  <li>[ ] PDF generated</li>
-  <li>[ ] Visibility set (public)</li>
-</ul>
+<div class="desk-proof-grid">
+  <div class="desk-card blue">
+    <h2>Issue status</h2>
+    <p><strong>{{ month }} {{ year }}</strong></p>
+    <p class="lede">{{ edition.title or 'Untitled issue' }}</p>
+    <p class="meta">{{ edition.edition_items|length }} fragments · {% if edition.status == 'published' %}Published{% elif edition.status == 'ready' %}Ready for proof{% else %}Draft{% endif %}</p>
+  </div>
 
-<p class="actions">
-  <a class="btn" href="/{{ edition.period_year_month }}/" target="_blank">Web preview</a>
-  <a class="btn btn-secondary" href="/{{ edition.period_year_month }}/zine.pdf" target="_blank">PDF preview</a>
-</p>
+  <div class="desk-card yellow">
+    <h2>Before publishing</h2>
+    <ul class="desk-checklist">
+      <li><span class="check-box" aria-hidden="true"></span> Issue title reviewed</li>
+      <li><span class="check-box" aria-hidden="true"></span> Fragments have enough context</li>
+      <li><span class="check-box" aria-hidden="true"></span> Links checked</li>
+      <li><span class="check-box" aria-hidden="true"></span> PDF generated</li>
+      <li><span class="check-box" aria-hidden="true"></span> Visibility set to public</li>
+    </ul>
+  </div>
 
-<form method="post" action="/desk/proof/generate-pdf">
-  <button type="submit" class="btn">Generate PDF</button>
-</form>
+  <div class="desk-card green">
+    <h2>Preview</h2>
+    <p class="lede" style="margin-bottom:16px;">Open the web issue or PDF in a new tab before you publish.</p>
+    <div class="desk-actions">
+      <a class="desk-btn secondary" href="/{{ edition.period_year_month }}/" target="_blank" rel="noopener">Web preview</a>
+      <a class="desk-btn secondary" href="/{{ edition.period_year_month }}/zine.pdf" target="_blank" rel="noopener">PDF preview</a>
+    </div>
+  </div>
 
-<form method="post" action="/desk/proof/publish" onsubmit="return confirm('Publish this issue?');">
-  <button type="submit" class="btn">Publish issue</button>
-</form>
+  <div class="desk-card pink">
+    <h2>Publish actions</h2>
+    {% if not edition.edition_items %}
+    <p class="desk-alert" style="margin-top:0;">This issue needs at least one fragment before you can publish.</p>
+    {% endif %}
+    <form method="post" action="/desk/proof/generate-pdf" style="margin-bottom:12px;">
+      <button type="submit" class="desk-btn success">Generate PDF</button>
+    </form>
+    <form method="post" action="/desk/proof/publish" onsubmit="return confirm('Publish this issue?');">
+      <button type="submit" class="desk-btn primary" {% if not edition.edition_items %}disabled{% endif %}>Publish issue</button>
+    </form>
+  </div>
+</div>
 {% endblock %}

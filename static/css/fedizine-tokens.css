@@ -1,0 +1,30 @@
+:root {
+  --bg: #fff7f0;
+  --surface: #ffffff;
+  --ink: #171321;
+
+  --pink: #ff4fa3;
+  --pink-hot: #e40066;
+  --blue: #1677ff;
+  --blue-sky: #b9e3ff;
+  --cyan: #31c6d4;
+  --purple: #8b5cf6;
+  --violet: #6d28d9;
+  --orange: #ff8a00;
+  --yellow: #ffd43b;
+  --green: #37d67a;
+  --teal: #00a896;
+  --red: #ff4d4d;
+
+  --line: #171321;
+  --muted: #5f5a6b;
+
+  --shadow-hard: 8px 8px 0 #171321;
+  --shadow-small: 4px 4px 0 #171321;
+
+  --measure: 68ch;
+
+  --font-display: Georgia, "Arial Rounded MT Bold", system-ui, sans-serif;
+  --font-body: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}

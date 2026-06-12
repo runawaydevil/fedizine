@@ -38,6 +38,9 @@ storage/cache/*
 celerybeat-schedule
 celerybeat.pid
 
+# Local theme porting notes (not for the repo)
+theming.md
+
 # OS and editors
 .DS_Store
 Thumbs.db

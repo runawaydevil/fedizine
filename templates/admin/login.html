@@ -5,22 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sign in — {{ app_name }}</title>
   <link rel="icon" href="/assets/favicon.ico" sizes="any">
-  <link rel="stylesheet" href="/static/css/paper-tokens.css">
+  <link rel="stylesheet" href="/static/css/fedizine-tokens.css">
   <link rel="stylesheet" href="/static/css/desk.css">
 </head>
-<body class="desk-layout desk-login">
-  <main class="desk-main desk-login-main">
+<body class="desk-login-page">
+  <div class="desk-login-card">
+    <div class="brand-bubble" aria-hidden="true">♥</div>
     <h1>Editorial Desk</h1>
-    <p class="lede">Sign in to review fragments and publish issues.</p>
+    <p class="lede">Sign in to shape the next issue.</p>
     {% if error %}
-    <p class="alert">{{ error }}</p>
+    <p class="desk-alert">{{ error }}</p>
     {% endif %}
-    <form method="post" action="/desk/login" class="form-card">
-      <label>Email <input type="email" name="email" required></label>
-      <label>Password <input type="password" name="password" required></label>
-      <button type="submit" class="btn">Sign in</button>
+    <form method="post" action="/desk/login">
+      <label>Email <input type="email" name="email" required autocomplete="email"></label>
+      <label>Password <input type="password" name="password" required autocomplete="current-password"></label>
+      <button type="submit" class="desk-btn primary">Enter the desk</button>
     </form>
-    <p class="meta"><a href="/">← View public site</a></p>
-  </main>
+    <a class="desk-login-back" href="/">← Back to site</a>
+  </div>
 </body>
 </html>

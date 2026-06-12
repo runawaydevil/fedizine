@@ -1,15 +1,19 @@
 {% extends "admin/base.html" %}
 {% block title %}Sources{% endblock %}
-{% block content %}
-<h1>Sources</h1>
-<p class="lede">Fediverse collection points for this press.</p>
 
+{% block page_header %}
+{% with kicker="Editorial Desk", title="Sources", lede="Tell Fedizine where to collect fragments. Add RSS feeds, ActivityPub profiles, and Fediverse sources." %}
+{% include "partials/desk_page_header.html" %}
+{% endwith %}
+{% endblock %}
+
+{% block content %}
 {% if error %}
-<p class="alert">{{ error }}</p>
+<p class="desk-alert">{{ error }}</p>
 {% endif %}
 
-<form method="post" action="/desk/sources" class="form-card">
-  <h2>New source</h2>
+<form method="post" action="/desk/sources" class="desk-card yellow desk-form-card">
+  <h2>Add source</h2>
   <label>Name <input type="text" name="name" required placeholder="Main Mastodon"></label>
   <label>Platform
     <select name="platform">
@@ -22,32 +26,32 @@
   <label>Type <input type="text" name="source_type" value="feed"></label>
   <label>URL <input type="url" name="url" required placeholder="https://..."></label>
   <label>Handle <input type="text" name="handle" placeholder="@you@instance.social"></label>
-  <button type="submit" class="btn">Save source</button>
+  <button type="submit" class="desk-btn primary">Save source</button>
 </form>
 
-<section>
-  <h2>Registered sources</h2>
-  {% if sources %}
-  <ul class="source-list">
-    {% for s in sources %}
-    <li class="fragment-card">
-      <strong>{{ s.name }}</strong>
-      <span class="selo">{{ s.platform }}</span>
-      <p class="meta">{{ s.url }}</p>
+<h2 class="desk-section-title">Registered sources</h2>
+{% if sources %}
+<ul class="desk-source-list">
+  {% for s in sources %}
+  <li class="desk-source-card">
+    <h3>{{ s.name }}</h3>
+    {% include "partials/source_tag.html" %}
+    <p class="meta source-url">{{ s.url }}</p>
+    <div class="desk-actions">
       <form method="post" action="/desk/sources/{{ s.id }}/collect" style="display:inline">
-        <button type="submit" class="btn btn-small">Collect now</button>
+        <button type="submit" class="desk-btn small success">Collect now</button>
       </form>
       <form method="post" action="/desk/sources/{{ s.id }}/delete" style="display:inline">
-        <button type="submit" class="btn btn-small btn-secondary">Remove</button>
+        <button type="submit" class="desk-btn small danger">Remove</button>
       </form>
-    </li>
-    {% endfor %}
-  </ul>
-  {% else %}
-  <div class="empty-state">
-    <p>No fragments collected yet.</p>
-    <p>Add a Fediverse source to begin collecting material.</p>
-  </div>
-  {% endif %}
-</section>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<div class="desk-empty">
+  <h2>No sources yet.</h2>
+  <p>Add your first Fediverse or RSS source above to start collecting fragments for the desk.</p>
+</div>
+{% endif %}
 {% endblock %}

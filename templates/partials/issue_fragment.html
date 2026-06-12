@@ -1,0 +1,101 @@
+{% set item = ei.item %}
+{% set title = ei.override_title or item.title %}
+{% set summary = ei.override_summary or item.summary %}
+{% set layout = item.content_type|issue_layout %}
+<article class="fragment-card fragment-{{ layout }}{% if ei.is_featured %} fragment-featured{% endif %}">
+  {% include "partials/issue_attribution.html" %}
+
+  {% if layout == 'photo' %}
+  <div class="fragment-photo-frame">
+    {% if item.media %}
+      {% for m in item.media %}
+      {% if m.url %}
+      <figure class="fragment-figure">
+        <img src="{{ m.url }}" alt="{{ m.alt or title or 'Photo fragment' }}" loading="lazy">
+        {% if m.alt or title %}
+        <figcaption>{{ m.alt or title }}</figcaption>
+        {% endif %}
+      </figure>
+      {% endif %}
+      {% endfor %}
+    {% elif item.content %}
+    <div class="fragment-body content">{{ item.content }}</div>
+    {% endif %}
+  </div>
+
+  {% elif layout == 'video' %}
+  <header class="fragment-head">
+    <h3 class="fragment-title">{{ title or 'Video fragment' }}</h3>
+  </header>
+  {% if item.media %}
+  <div class="fragment-media fragment-video-thumb">
+    {% for m in item.media %}
+    {% if m.url and m.get('type', 'image') != 'video' %}
+    <img src="{{ m.url }}" alt="{{ m.alt or title or 'Video thumbnail' }}" loading="lazy">
+    {% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% if summary %}
+  <p class="fragment-summary">{{ summary }}</p>
+  {% elif item.content %}
+  <div class="fragment-body content">{{ item.content }}</div>
+  {% endif %}
+
+  {% elif layout == 'link' %}
+  <header class="fragment-head">
+    <span class="fragment-type-label">Link</span>
+    <h3 class="fragment-title">{{ title or 'Shared link' }}</h3>
+  </header>
+  {% if summary %}
+  <p class="fragment-summary">{{ summary }}</p>
+  {% endif %}
+  {% if item.content and not summary %}
+  <div class="fragment-body content fragment-comment">{{ item.content }}</div>
+  {% elif item.content and summary %}
+  <blockquote class="fragment-pullquote">{{ item.content }}</blockquote>
+  {% endif %}
+
+  {% elif layout == 'reading' %}
+  <header class="fragment-head">
+    <span class="fragment-type-label">Reading</span>
+    <h3 class="fragment-title">{{ title or 'Reading note' }}</h3>
+    {% if item.author_name %}
+    <p class="fragment-byline">by {{ item.author_name }}</p>
+    {% endif %}
+  </header>
+  {% if summary %}
+  <p class="fragment-summary">{{ summary }}</p>
+  {% endif %}
+  {% if item.content %}
+  <blockquote class="fragment-pullquote">{{ item.content }}</blockquote>
+  {% endif %}
+
+  {% else %}
+  <header class="fragment-head">
+    <h3 class="fragment-title">{{ title or 'Fragment' }}</h3>
+  </header>
+  {% if summary %}
+  <p class="fragment-lede">{{ summary }}</p>
+  {% endif %}
+  {% if item.content %}
+  <div class="fragment-body content">{{ item.content }}</div>
+  {% endif %}
+  {% if item.media %}
+  <div class="fragment-media">
+    {% for m in item.media %}
+    {% if m.url %}
+    <img src="{{ m.url }}" alt="{{ m.alt or '' }}" loading="lazy">
+    {% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% endif %}
+
+  {% if item.canonical_url %}
+  <p class="fragment-source-link">
+    <span class="source-link-label">Original</span>
+    <a href="{{ item.canonical_url }}" rel="noopener noreferrer">{{ item.canonical_url }}</a>
+  </p>
+  {% endif %}
+</article>

@@ -1,27 +1,71 @@
 {% extends "admin/base.html" %}
 {% block title %}Editorial Desk{% endblock %}
-{% block content %}
-<h1>Editorial Desk</h1>
-<p class="lede">Issue in progress: <strong>{{ edition.period_year_month }}</strong></p>
 
-<div class="stats-grid">
-  <div class="stat-card">
-    <span class="stat-num">{{ total_items }}</span>
-    <span class="stat-label">fragments found</span>
+{% block page_header %}
+{% set period = edition.period_year_month %}
+{% set month = period|month_name %}
+{% set year = period.split('-')[0] %}
+{% with kicker="Editorial Desk", title="Current issue", lede=month ~ " " ~ year ~ " is on the desk. Review fragments, build the issue, generate a proof, and publish when it is ready." %}
+{% include "partials/desk_page_header.html" %}
+{% endwith %}
+{% endblock %}
+
+{% block content %}
+{% set period = edition.period_year_month %}
+{% set month = period|month_name %}
+{% set year = period.split('-')[0] %}
+
+<div class="desk-card blue">
+  <div style="display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:8px;">
+    <h2 style="margin:0; flex:1;">{{ month }} {{ year }}</h2>
+    {% if edition.status == 'published' %}
+    <span class="desk-badge published">Published</span>
+    {% elif edition.status == 'ready' %}
+    <span class="desk-badge ready">Ready for proof</span>
+    {% else %}
+    <span class="desk-badge draft">Draft</span>
+    {% endif %}
   </div>
-  <div class="stat-card">
-    <span class="stat-num">{{ selected }}</span>
-    <span class="stat-label">selected</span>
+  <p class="meta" style="margin:0;">
+    {{ total_items }} fragments found · {{ selected }} selected · {{ featured }} featured
+  </p>
+</div>
+
+<div class="desk-stats-grid">
+  <div class="desk-stat-card pink">
+    <span class="desk-stat-num">{{ total_items }}</span>
+    <span class="desk-stat-label">Fragments found</span>
   </div>
-  <div class="stat-card">
-    <span class="stat-num">{{ featured }}</span>
-    <span class="stat-label">featured</span>
+  <div class="desk-stat-card yellow">
+    <span class="desk-stat-num">{{ selected }}</span>
+    <span class="desk-stat-label">Selected</span>
+  </div>
+  <div class="desk-stat-card blue">
+    <span class="desk-stat-num">{{ featured }}</span>
+    <span class="desk-stat-label">Featured</span>
+  </div>
+  <div class="desk-stat-card green">
+    <span class="desk-stat-num">{% if edition.status == 'published' %}✓{% else %}…{% endif %}</span>
+    <span class="desk-stat-label">Issue status</span>
   </div>
 </div>
 
-<p class="actions">
-  <a class="btn" href="/desk/fragments">Review fragments</a>
-  <a class="btn" href="/desk/proof">Generate proof</a>
-  <a class="btn btn-secondary" href="/desk/issues">Build issue</a>
-</p>
+<div class="desk-actions">
+  <a class="desk-btn secondary" href="/desk/sources">Collect sources</a>
+  <a class="desk-btn" href="/desk/fragments">Review fragments</a>
+  <a class="desk-btn warning" href="/desk/issues">Build issue</a>
+  <a class="desk-btn primary" href="/desk/proof">Generate proof</a>
+</div>
+
+<div class="desk-card purple" style="margin-top:28px;">
+  <h2>Workflow</h2>
+  <ol class="desk-workflow">
+    <li><span class="step-num">1</span> Sources — add RSS and Fediverse feeds</li>
+    <li><span class="step-num">2</span> Collect — pull fresh fragments</li>
+    <li><span class="step-num">3</span> Review fragments — select and feature</li>
+    <li><span class="step-num">4</span> Build issue — shape the monthly zine</li>
+    <li><span class="step-num">5</span> Generate proof — PDF and web preview</li>
+    <li><span class="step-num">6</span> Publish issue — send it to the world</li>
+  </ol>
+</div>
 {% endblock %}

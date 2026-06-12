@@ -1,24 +1,27 @@
-<article class="fragment-card">
-  {% include "partials/source_tag.html" %}
+<article class="desk-fragment-card">
+  <div class="fragment-head">
+    {% include "partials/source_tag.html" %}
+    <span class="desk-badge {{ item.status }}">{{ item.status }}</span>
+  </div>
   <h3>{{ item.title or "Fragment" }}</h3>
-  <p class="meta">{{ item.published_at.strftime('%d %b %Y') if item.published_at else '' }} · score {{ item.score }}</p>
+  <p class="meta">{{ item.published_at.strftime('%d %b %Y') if item.published_at else '' }}{% if item.published_at %} · {% endif %}score {{ item.score }}</p>
   <div class="content">{{ item.content[:400] }}{% if item.content|length > 400 %}…{% endif %}</div>
   <p class="meta">Suggested section: {{ item.suggested_section or 'Fragments' }}</p>
-  <div class="actions">
+  <div class="desk-actions">
     <form method="post" action="/desk/fragments/{{ item.id }}/action" style="display:inline">
       <input type="hidden" name="action" value="include">
-      <button class="btn btn-small" type="submit">Include</button>
+      <button class="desk-btn small success" type="submit">Include</button>
     </form>
     <form method="post" action="/desk/fragments/{{ item.id }}/action" style="display:inline">
       <input type="hidden" name="action" value="feature">
-      <button class="btn btn-small" type="submit">Feature</button>
+      <button class="desk-btn small primary" type="submit">Feature</button>
     </form>
     <form method="post" action="/desk/fragments/{{ item.id }}/action" style="display:inline">
       <input type="hidden" name="action" value="ignore">
-      <button class="btn btn-small btn-secondary" type="submit">Ignore</button>
+      <button class="desk-btn small secondary" type="submit">Ignore</button>
     </form>
     {% if item.canonical_url %}
-    <a href="{{ item.canonical_url }}" class="btn btn-small btn-secondary" target="_blank" rel="noopener">View original</a>
+    <a href="{{ item.canonical_url }}" class="desk-btn small secondary" target="_blank" rel="noopener">View original</a>
     {% endif %}
   </div>
 </article>

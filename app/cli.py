@@ -16,10 +16,18 @@ from app.services.edition_service import (
     get_or_create_edition,
 )
 from app.services.publish_service import build_pdf, publish_edition
+from app import __author__, __author_email__, __version__
 from app.services.scoring_service import score_user_items
 
 app = typer.Typer(help="Fedizine — editorial tools")
 settings = get_settings()
+
+
+@app.command("version")
+def show_version():
+    """Print release version and developer credit."""
+    typer.echo(f"Fedizine {__version__}")
+    typer.echo(f"Developed by {__author__} <{__author_email__}>")
 
 
 def _get_user(db, slug: str | None = None) -> User:

@@ -5,27 +5,43 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Editorial Desk{% endblock %} — {{ app_name }}</title>
   <link rel="icon" href="/assets/favicon.ico" sizes="any">
-  <link rel="stylesheet" href="/static/css/paper-tokens.css">
+  <link rel="stylesheet" href="/static/css/fedizine-tokens.css">
   <link rel="stylesheet" href="/static/css/desk.css">
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
   <script defer src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js"></script>
 </head>
-<body class="desk-layout">
-  <aside class="desk-sidebar">
-    <p class="desk-brand">Editorial Desk</p>
-    <nav>
-      <a href="/desk/">Editorial Desk</a>
-      <a href="/desk/sources">Sources</a>
-      <a href="/desk/fragments">Fragments</a>
-      <a href="/desk/issues">Issues</a>
-      <a href="/desk/proof">Proof</a>
+<body class="desk-shell">
+  {% set path = request.url.path %}
+  <aside class="desk-rail">
+    <a class="desk-brand" href="/desk/">
+      <span class="brand-bubble" aria-hidden="true">♥</span>
+      <span>
+        <strong>{{ app_name }}</strong>
+        <small>Editorial Desk</small>
+      </span>
+    </a>
+
+    <nav class="desk-nav" aria-label="Editorial Desk">
+      <a href="/desk/" class="{% if path == '/desk' or path == '/desk/' %}active{% endif %}" {% if path == '/desk' or path == '/desk/' %}aria-current="page"{% endif %}>Desk</a>
+      <a href="/desk/sources" class="{% if path.startswith('/desk/sources') %}active{% endif %}" {% if path.startswith('/desk/sources') %}aria-current="page"{% endif %}>Sources</a>
+      <a href="/desk/fragments" class="{% if path.startswith('/desk/fragments') %}active{% endif %}" {% if path.startswith('/desk/fragments') %}aria-current="page"{% endif %}>Fragments</a>
+      <a href="/desk/issues" class="{% if path.startswith('/desk/issues') %}active{% endif %}" {% if path.startswith('/desk/issues') %}aria-current="page"{% endif %}>Issues</a>
+      <a href="/desk/proof" class="{% if path.startswith('/desk/proof') %}active{% endif %}" {% if path.startswith('/desk/proof') %}aria-current="page"{% endif %}>Proof</a>
       <a href="/archive/">Archive</a>
+    </nav>
+
+    <div class="desk-rail-footer">
       <a href="/">View site</a>
       <a href="/desk/logout">Log out</a>
-    </nav>
+      <p class="desk-rail-meta">v{{ app_version }} · <a href="mailto:{{ app_author_email }}">{{ app_author }}</a></p>
+    </div>
   </aside>
+
   <main class="desk-main">
-    {% block content %}{% endblock %}
+    {% block page_header %}{% endblock %}
+    <section class="desk-content">
+      {% block content %}{% endblock %}
+    </section>
   </main>
 </body>
 </html>

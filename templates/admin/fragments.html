@@ -1,10 +1,14 @@
 {% extends "admin/base.html" %}
 {% block title %}Fragments{% endblock %}
-{% block content %}
-<h1>Fragments</h1>
-<p class="lede">Review what was collected from the Fediverse.</p>
 
-<nav class="filter-nav">
+{% block page_header %}
+{% with kicker="Editorial Desk", title="Fragments", lede="Review what the Fediverse brought in. Select, feature, or ignore collected material before building the issue." %}
+{% include "partials/desk_page_header.html" %}
+{% endwith %}
+{% endblock %}
+
+{% block content %}
+<nav class="desk-tabs" aria-label="Fragment filters">
   <a href="/desk/fragments?status=candidate" class="{% if current_status == 'candidate' %}active{% endif %}">Candidates</a>
   <a href="/desk/fragments?status=selected" class="{% if current_status == 'selected' %}active{% endif %}">Selected</a>
   <a href="/desk/fragments?status=featured" class="{% if current_status == 'featured' %}active{% endif %}">Featured</a>
@@ -13,15 +17,19 @@
 </nav>
 
 {% if items %}
-<div class="fragment-grid">
+<div class="desk-fragment-grid">
   {% for item in items %}
   {% include "partials/fragment_card.html" %}
   {% endfor %}
 </div>
 {% else %}
-<div class="empty-state">
-  <p>No fragments found with this filter.</p>
-  <p>The Fediverse may be quiet — or collection has not run yet.</p>
+<div class="desk-empty">
+  <h2>No fragments yet.</h2>
+  <p>The Fediverse may be quiet, or collection has not run yet. Add a source or collect from existing sources to start filling the desk.</p>
+  <div class="desk-actions" style="justify-content:center;">
+    <a class="desk-btn secondary" href="/desk/sources">Go to sources</a>
+    <a class="desk-btn primary" href="/desk/sources">Collect now</a>
+  </div>
 </div>
 {% endif %}
 {% endblock %}

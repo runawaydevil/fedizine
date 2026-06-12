@@ -6,6 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
+from app import __author__, __author_email__, __version__
 from app.core.config import get_settings
 from app.web import admin, health, public
 
@@ -16,7 +17,8 @@ for path in (settings.storage_path, settings.public_path, settings.media_path):
 
 app = FastAPI(
     title=settings.app_name,
-    version="0.1.0",
+    version=__version__,
+    description=f"Developed by {__author__} <{__author_email__}>",
     docs_url="/docs" if not settings.is_production else None,
     redoc_url=None,
 )
@@ -53,5 +55,5 @@ if public_storage.exists():
     app.mount("/files", StaticFiles(directory=str(public_storage)), name="files")
 
 app.include_router(health.router)
-app.include_router(public.router)
 app.include_router(admin.router)
+app.include_router(public.router)
