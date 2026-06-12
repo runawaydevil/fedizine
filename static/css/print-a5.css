@@ -1,0 +1,47 @@
+@page {
+  size: A5 portrait;
+  margin: 15mm;
+  @bottom-center {
+    content: counter(page);
+    font-size: 9pt;
+    color: #666;
+  }
+}
+
+body {
+  font-family: Georgia, serif;
+  font-size: 10pt;
+  line-height: 1.5;
+  color: #333;
+}
+
+h1 { font-size: 18pt; page-break-after: avoid; }
+h2 { font-size: 13pt; margin-top: 1.5em; page-break-after: avoid; }
+h3 { font-size: 11pt; page-break-after: avoid; }
+
+.cover {
+  page-break-after: always;
+  text-align: center;
+  padding-top: 30%;
+}
+
+.toc { page-break-after: always; }
+
+.section { page-break-before: auto; }
+
+.fragment {
+  margin-bottom: 1em;
+  page-break-inside: avoid;
+}
+
+.meta, .url {
+  font-size: 8pt;
+  color: #666;
+}
+
+.colophon {
+  page-break-before: always;
+  font-size: 8pt;
+  text-align: center;
+  margin-top: 2em;
+}

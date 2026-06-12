@@ -1,0 +1,27 @@
+{% extends "admin/base.html" %}
+{% block title %}Fragments{% endblock %}
+{% block content %}
+<h1>Fragments</h1>
+<p class="lede">Review what was collected from the Fediverse.</p>
+
+<nav class="filter-nav">
+  <a href="/desk/fragments?status=candidate" class="{% if current_status == 'candidate' %}active{% endif %}">Candidates</a>
+  <a href="/desk/fragments?status=selected" class="{% if current_status == 'selected' %}active{% endif %}">Selected</a>
+  <a href="/desk/fragments?status=featured" class="{% if current_status == 'featured' %}active{% endif %}">Featured</a>
+  <a href="/desk/fragments?status=ignored" class="{% if current_status == 'ignored' %}active{% endif %}">Ignored</a>
+  <a href="/desk/fragments?status=all" class="{% if current_status == 'all' %}active{% endif %}">All</a>
+</nav>
+
+{% if items %}
+<div class="fragment-grid">
+  {% for item in items %}
+  {% include "partials/fragment_card.html" %}
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+  <p>No fragments found with this filter.</p>
+  <p>The Fediverse may be quiet — or collection has not run yet.</p>
+</div>
+{% endif %}
+{% endblock %}

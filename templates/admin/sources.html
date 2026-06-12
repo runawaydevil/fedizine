@@ -1,0 +1,53 @@
+{% extends "admin/base.html" %}
+{% block title %}Sources{% endblock %}
+{% block content %}
+<h1>Sources</h1>
+<p class="lede">Fediverse collection points for this press.</p>
+
+{% if error %}
+<p class="alert">{{ error }}</p>
+{% endif %}
+
+<form method="post" action="/desk/sources" class="form-card">
+  <h2>New source</h2>
+  <label>Name <input type="text" name="name" required placeholder="Main Mastodon"></label>
+  <label>Platform
+    <select name="platform">
+      <option value="rss">RSS/Atom</option>
+      <option value="activitypub">ActivityPub</option>
+      <option value="mastodon">Mastodon</option>
+      <option value="pixelfed">Pixelfed</option>
+    </select>
+  </label>
+  <label>Type <input type="text" name="source_type" value="feed"></label>
+  <label>URL <input type="url" name="url" required placeholder="https://..."></label>
+  <label>Handle <input type="text" name="handle" placeholder="@you@instance.social"></label>
+  <button type="submit" class="btn">Save source</button>
+</form>
+
+<section>
+  <h2>Registered sources</h2>
+  {% if sources %}
+  <ul class="source-list">
+    {% for s in sources %}
+    <li class="fragment-card">
+      <strong>{{ s.name }}</strong>
+      <span class="selo">{{ s.platform }}</span>
+      <p class="meta">{{ s.url }}</p>
+      <form method="post" action="/desk/sources/{{ s.id }}/collect" style="display:inline">
+        <button type="submit" class="btn btn-small">Collect now</button>
+      </form>
+      <form method="post" action="/desk/sources/{{ s.id }}/delete" style="display:inline">
+        <button type="submit" class="btn btn-small btn-secondary">Remove</button>
+      </form>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div class="empty-state">
+    <p>No fragments collected yet.</p>
+    <p>Add a Fediverse source to begin collecting material.</p>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

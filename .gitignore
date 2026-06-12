@@ -1,0 +1,47 @@
+# Secrets and local env
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg
+*.egg-info/
+.eggs/
+dist/
+build/
+pip-wheel-metadata/
+.venv/
+venv/
+ENV/
+
+# Test and type tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# Runtime data (keep directory placeholders)
+storage/public/*
+storage/media/*
+storage/cache/*
+!storage/public/.gitkeep
+!storage/media/.gitkeep
+!storage/cache/.gitkeep
+
+# Generated artifacts
+*.pdf
+celerybeat-schedule
+celerybeat.pid
+
+# OS and editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo

@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}{{ app_name }}{% endblock %}
+{% block body_class %}public-home{% endblock %}
+{% block content %}
+<main class="site-shell">
+  {% include "partials/site_header.html" %}
+
+  <section class="hero">
+    <div class="hero-issue-mark press-label" aria-hidden="true">
+      <span class="stamp">MONTHLY ISSUE</span>
+      <span class="ink-mark">F</span>
+    </div>
+
+    <div class="hero-content">
+      <p class="eyebrow">★ monthly fediverse webzine</p>
+      <h1>A tiny press for the Fediverse.</h1>
+      <p class="hero-subtitle">
+        Every month, posts, photos, readings, videos, and federated finds become
+        a colorful webzine and a printable PDF.
+      </p>
+
+      <div class="hero-actions">
+        {% if latest %}
+        <a class="btn btn-pink" href="/{{ latest.period_year_month }}/">Read current issue</a>
+        {% if pdf_ready %}
+        <a class="btn btn-blue" href="/{{ latest.period_year_month }}/zine.pdf">Download PDF</a>
+        {% endif %}
+        <a class="btn btn-yellow" href="/archive/">Browse archive</a>
+        {% else %}
+        <a class="btn btn-yellow" href="/archive/">Browse archive</a>
+        <a class="btn btn-purple" href="/colophon/">Colophon</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="hero-stickers node-dispatch" aria-label="Fediverse platforms">
+      <span>ActivityPub</span>
+      <span>RSS</span>
+      <span>Mastodon</span>
+      <span>Pixelfed</span>
+      <span>BookWyrm</span>
+      <span>PeerTube</span>
+      <span>Lemmy</span>
+    </div>
+  </section>
+
+  <section class="home-grid">
+    <article class="card card-pink current-edition">
+      {% if latest %}
+      <p class="label">current issue</p>
+      <h2>{{ month_label }}</h2>
+      <p>{{ latest.title }}</p>
+      <p class="meta">
+        {{ fragment_count }} fragment{% if fragment_count != 1 %}s{% endif %}
+        · {{ source_count }} source{% if source_count != 1 %}s{% endif %}
+        {% if pdf_ready %} · PDF ready{% endif %}
+      </p>
+      <div class="actions">
+        <a class="btn btn-yellow" href="/{{ latest.period_year_month }}/">Open issue</a>
+        {% if pdf_ready %}
+        <a class="btn btn-blue" href="/{{ latest.period_year_month }}/zine.pdf">PDF</a>
+        {% endif %}
+      </div>
+      {% else %}
+      <p class="label">waiting</p>
+      <h2>First issue</h2>
+      <p>The shelf is still empty. When the first issue is published, it will appear here.</p>
+      <p class="meta">No published numbers yet</p>
+      {% endif %}
+    </article>
+
+    <article class="card card-yellow slash-card">
+      <p class="label">house pages</p>
+      <h2>Slash pages</h2>
+      <ul>
+        <li><a class="slash" href="/about/">#/about</a> <span>about this webzine</span></li>
+        <li><a class="slash" href="/now/">#/now</a> <span>current focus</span></li>
+        <li><a class="slash" href="/uses/">#/uses</a> <span>tools and backstage</span></li>
+        <li><a class="slash" href="/links/">#/links</a> <span>neighbors and shortcuts</span></li>
+        <li><a class="slash" href="/colophon/">#/colophon</a> <span>how this was made</span></li>
+      </ul>
+    </article>
+
+    <article class="card card-blue">
+      <p class="label">sources</p>
+      <h2>Fediverse</h2>
+      <div class="tag-cloud">
+        <span>Mastodon</span>
+        <span>Pixelfed</span>
+        <span>PeerTube</span>
+        <span>BookWyrm</span>
+        <span>Lemmy</span>
+        <span>Funkwhale</span>
+        <span>Mobilizon</span>
+        <span>ActivityPub</span>
+        <span>RSS</span>
+      </div>
+    </article>
+
+    <article class="card card-green">
+      <p class="label">archive</p>
+      <h2>Shelf</h2>
+      <p>A collection of monthly issues stitched together at {{ site_host }}.</p>
+      {% if editions_by_year %}
+      {% for year, year_editions in editions_by_year.items()|sort(reverse=true) %}
+      <h3 class="shelf-year">{{ year }}</h3>
+      <ul class="shelf-list">
+        {% for ed in year_editions %}
+        <li>
+          <a href="/{{ ed.period_year_month }}/">{{ ed.period_year_month|month_name }} — {{ ed.title }}</a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endfor %}
+      <p style="margin-top: 1rem;"><a class="big-link" href="/archive/">See all issues ↗</a></p>
+      {% elif editions %}
+      <p><a class="big-link" href="/archive/">See all issues ↗</a></p>
+      {% else %}
+      <div class="empty-state">
+        <p>The shelf is still empty.</p>
+        <p>When the first issue is published, it will appear here.</p>
+      </div>
+      {% endif %}
+    </article>
+  </section>
+
+  {% include "partials/site_footer.html" %}
+</main>
+{% endblock %}

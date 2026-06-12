@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}{{ edition.title }} — {{ app_name }}{% endblock %}
+{% block body_class %}public-edition{% endblock %}
+{% block content %}
+<main class="site-shell">
+  {% include "partials/site_header.html" %}
+
+  <header class="edition-cover card card-pink">
+    <p class="label">{% if pdf_ready %}pdf ready{% else %}issue{% endif %}</p>
+    <h1 class="edition-title">{{ edition.title }}</h1>
+    <p class="meta">{{ month_label }} · {{ edition.period_year_month }}</p>
+    {% if edition.editorial_text %}
+    <div class="editorial-intro lede">{{ edition.editorial_text }}</div>
+    {% endif %}
+    <div class="actions">
+      <a class="btn btn-blue" href="/{{ edition.period_year_month }}/zine.pdf">Download PDF</a>
+      <a class="btn btn-yellow" href="/archive/">Archive</a>
+      <a class="btn btn-green" href="/">Home</a>
+    </div>
+  </header>
+
+  <nav class="toc card card-yellow">
+    <p class="label">contents</p>
+    <h2>Table of contents</h2>
+    <ul class="slash-list">
+      {% for section_name, items in sections.items() %}
+      <li><a href="#section-{{ loop.index }}">{{ section_name }}</a> <span class="meta">({{ items|length }})</span></li>
+      {% endfor %}
+    </ul>
+  </nav>
+
+  <div class="reading-column">
+    {% for section_name, items in sections.items() %}
+    <section id="section-{{ loop.index }}" class="edition-section">
+      <h2>{{ section_name }}</h2>
+      {% for ei in items %}
+      {% set item = ei.item %}
+      <article class="card fragment-card">
+        {% include "partials/source_tag.html" %}
+        <h3>{{ ei.override_title or item.title or "Fragment" }}</h3>
+        {% if ei.override_summary or item.summary %}
+        <p class="summary">{{ ei.override_summary or item.summary }}</p>
+        {% endif %}
+        <div class="content">{{ item.content }}</div>
+        {% if item.media %}
+        <div class="media-block">
+          {% for m in item.media %}
+          {% if m.url %}
+          <img src="{{ m.url }}" alt="{{ m.alt or '' }}" loading="lazy">
+          {% endif %}
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% if item.canonical_url %}
+        <p class="meta"><a href="{{ item.canonical_url }}" rel="noopener">See original ↗</a></p>
+        {% endif %}
+      </article>
+      {% endfor %}
+    </section>
+    {% endfor %}
+  </div>
+
+  {% include "partials/site_footer.html" %}
+</main>
+{% endblock %}

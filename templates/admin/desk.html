@@ -1,0 +1,27 @@
+{% extends "admin/base.html" %}
+{% block title %}Editorial Desk{% endblock %}
+{% block content %}
+<h1>Editorial Desk</h1>
+<p class="lede">Issue in progress: <strong>{{ edition.period_year_month }}</strong></p>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <span class="stat-num">{{ total_items }}</span>
+    <span class="stat-label">fragments found</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-num">{{ selected }}</span>
+    <span class="stat-label">selected</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-num">{{ featured }}</span>
+    <span class="stat-label">featured</span>
+  </div>
+</div>
+
+<p class="actions">
+  <a class="btn" href="/desk/fragments">Review fragments</a>
+  <a class="btn" href="/desk/proof">Generate proof</a>
+  <a class="btn btn-secondary" href="/desk/issues">Build issue</a>
+</p>
+{% endblock %}

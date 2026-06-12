@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Archive — {{ app_name }}{% endblock %}
+{% block body_class %}public-archive{% endblock %}
+{% block content %}
+<main class="site-shell">
+  {% include "partials/site_header.html" %}
+
+  <section class="page-intro">
+    <h1 class="slash-title"># /ARCHIVE</h1>
+    <p class="lede">A shelf of monthly issues stitched from the Fediverse.</p>
+  </section>
+
+  <div class="page-body">
+    <section class="card card-green">
+      <p class="label">archive</p>
+      <h2>Shelf</h2>
+      {% if editions_by_year %}
+      {% for year, year_editions in editions_by_year.items()|sort(reverse=true) %}
+      <h3 class="shelf-year">{{ year }}</h3>
+      <ul class="shelf-list">
+        {% for ed in year_editions %}
+        <li>
+          <a href="/{{ ed.period_year_month }}/">{{ ed.period_year_month|month_name }} — {{ ed.title }}</a>
+          <span class="meta">{{ ed.period_year_month }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endfor %}
+      {% elif editions %}
+      <ul class="edition-list">
+        {% for ed in editions %}
+        <li>
+          <a href="/{{ ed.period_year_month }}/">{{ ed.period_year_month|month_name }} — {{ ed.title }}</a>
+          <span class="meta">{{ ed.period_year_month }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="empty-state">
+        <p>The shelf is still empty.</p>
+        <p>When the first issue is published, it will appear here.</p>
+      </div>
+      {% endif %}
+      <p style="margin-top: 1.5rem;"><a class="back-link" href="/">← Back home</a></p>
+    </section>
+  </div>
+
+  {% include "partials/site_footer.html" %}
+</main>
+{% endblock %}

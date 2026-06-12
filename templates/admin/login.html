@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign in — {{ app_name }}</title>
+  <link rel="icon" href="/assets/favicon.ico" sizes="any">
+  <link rel="stylesheet" href="/static/css/paper-tokens.css">
+  <link rel="stylesheet" href="/static/css/desk.css">
+</head>
+<body class="desk-layout desk-login">
+  <main class="desk-main desk-login-main">
+    <h1>Editorial Desk</h1>
+    <p class="lede">Sign in to review fragments and publish issues.</p>
+    {% if error %}
+    <p class="alert">{{ error }}</p>
+    {% endif %}
+    <form method="post" action="/desk/login" class="form-card">
+      <label>Email <input type="email" name="email" required></label>
+      <label>Password <input type="password" name="password" required></label>
+      <button type="submit" class="btn">Sign in</button>
+    </form>
+    <p class="meta"><a href="/">← View public site</a></p>
+  </main>
+</body>
+</html>

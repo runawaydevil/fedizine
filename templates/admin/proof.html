@@ -1,0 +1,27 @@
+{% extends "admin/base.html" %}
+{% block title %}Proof{% endblock %}
+{% block content %}
+<h1>Issue proof</h1>
+<p class="lede">Review before publishing.</p>
+
+<ul class="checklist">
+  <li>[ ] Issue title reviewed</li>
+  <li>[ ] Fragments have enough context</li>
+  <li>[ ] Links working</li>
+  <li>[ ] PDF generated</li>
+  <li>[ ] Visibility set (public)</li>
+</ul>
+
+<p class="actions">
+  <a class="btn" href="/{{ edition.period_year_month }}/" target="_blank">Web preview</a>
+  <a class="btn btn-secondary" href="/{{ edition.period_year_month }}/zine.pdf" target="_blank">PDF preview</a>
+</p>
+
+<form method="post" action="/desk/proof/generate-pdf">
+  <button type="submit" class="btn">Generate PDF</button>
+</form>
+
+<form method="post" action="/desk/proof/publish" onsubmit="return confirm('Publish this issue?');">
+  <button type="submit" class="btn">Publish issue</button>
+</form>
+{% endblock %}

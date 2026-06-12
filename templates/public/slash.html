@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}{{ page_title }} — {{ app_name }}{% endblock %}
+{% block body_class %}public-slash{% endblock %}
+{% block content %}
+<main class="site-shell">
+  {% include "partials/site_header.html" %}
+
+  <section class="page-intro">
+    <h1 class="slash-title"># /{{ slug|upper }}</h1>
+    <p class="lede">{{ page_lede }}</p>
+  </section>
+
+  <div class="page-body">
+    <article class="card card-yellow">
+      {% if page_body %}
+      {% for paragraph in page_body %}
+      <p>{{ paragraph }}</p>
+      {% endfor %}
+      {% else %}
+      <p>This page is part of the house slash pages — a personal corner of the web, in the IndieWeb spirit.</p>
+      <p class="meta">More content will be stitched here soon.</p>
+      {% endif %}
+      <p><a class="back-link" href="/">← Back home</a></p>
+    </article>
+  </div>
+
+  {% include "partials/site_footer.html" %}
+</main>
+{% endblock %}

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>{{ app_name }} — {{ site_host }}</title>
+    <link>{{ public_url }}/</link>
+    <description>Monthly Fediverse-powered webzine issues.</description>
+    <language>en-US</language>
+    {% for ed in editions %}
+    <item>
+      <title>{{ ed.title }}</title>
+      <link>{{ public_url }}/{{ ed.period_year_month }}/</link>
+      <guid>{{ public_url }}/{{ ed.period_year_month }}/</guid>
+      {% if ed.published_at %}
+      <pubDate>{{ ed.published_at.strftime('%a, %d %b %Y %H:%M:%S +0000') }}</pubDate>
+      {% endif %}
+      <description>{{ ed.editorial_text or ed.title }}</description>
+    </item>
+    {% endfor %}
+  </channel>
+</rss>

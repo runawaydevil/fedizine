@@ -1,0 +1,40 @@
+platforms:
+  rss:
+    connector: rss
+    protocols: [rss, atom]
+    content_types: [article, link, status]
+
+  atom:
+    connector: atom
+    protocols: [atom]
+    content_types: [article, link, status]
+
+  activitypub:
+    connector: activitypub
+    protocols: [activitypub]
+    content_types: [status, article, image, video, event]
+
+  mastodon:
+    connector: activitypub
+    protocols: [activitypub, mastodon_api, rss]
+    content_types: [status, image, link, thread]
+
+  pixelfed:
+    connector: activitypub
+    protocols: [activitypub, rss]
+    content_types: [image, album]
+
+  lemmy:
+    connector: activitypub
+    protocols: [activitypub, rss]
+    content_types: [community_post, comment, link]
+
+  peertube:
+    connector: activitypub
+    protocols: [activitypub, peertube_api, rss]
+    content_types: [video, channel]
+
+  bookwyrm:
+    connector: activitypub
+    protocols: [activitypub, rss]
+    content_types: [book, review, quote]

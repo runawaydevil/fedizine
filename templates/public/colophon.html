@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Colophon — {{ app_name }}{% endblock %}
+{% block body_class %}public-colophon{% endblock %}
+{% block content %}
+<main class="site-shell">
+  {% include "partials/site_header.html" %}
+
+  <section class="page-intro">
+    <h1 class="slash-title"># /COLOPHON</h1>
+    <p class="lede">How this tiny press was made — backstage, stack, and editorial intent.</p>
+  </section>
+
+  <div class="page-body">
+    <article class="card card-purple">
+      <p class="label">backstage</p>
+      <h2>How this site is built</h2>
+      <p>{{ app_name }} is a webzine and PDF generator powered by the Fediverse — colorful, IndieWeb, editorial.</p>
+      <div class="tag-cloud" style="margin: 1.25rem 0;">
+        <span>Python</span>
+        <span>FastAPI</span>
+        <span>PostgreSQL</span>
+        <span>Celery</span>
+        <span>Jinja2</span>
+        <span>WeasyPrint</span>
+        <span>Docker</span>
+      </div>
+      <p>Hosted at <a href="{{ public_url }}">{{ site_host }}</a></p>
+      <p class="meta">Visual theme: web poster, slash pages, vivid colors, hard shadows.</p>
+      <p><a class="back-link" href="/">← Back home</a></p>
+    </article>
+  </div>
+
+  {% include "partials/site_footer.html" %}
+</main>
+{% endblock %}

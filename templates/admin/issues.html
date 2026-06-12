@@ -1,0 +1,34 @@
+{% extends "admin/base.html" %}
+{% block title %}Issues{% endblock %}
+{% block content %}
+<h1>Issue — {{ edition.period_year_month }}</h1>
+<p class="lede">{{ edition.title }}</p>
+
+<form method="post" action="/desk/issues/build">
+  <button type="submit" class="btn">Build issue automatically</button>
+</form>
+
+{% if edition.edition_items %}
+<section>
+  <h2>Items in this issue ({{ edition.edition_items|length }})</h2>
+  <ul class="edition-items-list">
+    {% for ei in edition.edition_items|sort(attribute='sort_order') %}
+    <li class="fragment-card">
+      <span class="selo">{{ ei.section }}</span>
+      <strong>{{ ei.override_title or ei.item.title or 'Fragment' }}</strong>
+      <span class="meta">score {{ ei.item.score }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% else %}
+<div class="empty-state">
+  <p>This issue is still a draft.</p>
+  <p>Review selected fragments and click "Build issue automatically".</p>
+</div>
+{% endif %}
+
+<p class="actions">
+  <a class="btn" href="/desk/proof">View proof</a>
+</p>
+{% endblock %}

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Editorial Desk{% endblock %} — {{ app_name }}</title>
+  <link rel="icon" href="/assets/favicon.ico" sizes="any">
+  <link rel="stylesheet" href="/static/css/paper-tokens.css">
+  <link rel="stylesheet" href="/static/css/desk.css">
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js"></script>
+</head>
+<body class="desk-layout">
+  <aside class="desk-sidebar">
+    <p class="desk-brand">Editorial Desk</p>
+    <nav>
+      <a href="/desk/">Editorial Desk</a>
+      <a href="/desk/sources">Sources</a>
+      <a href="/desk/fragments">Fragments</a>
+      <a href="/desk/issues">Issues</a>
+      <a href="/desk/proof">Proof</a>
+      <a href="/archive/">Archive</a>
+      <a href="/">View site</a>
+      <a href="/desk/logout">Log out</a>
+    </nav>
+  </aside>
+  <main class="desk-main">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>
